@@ -1,0 +1,9 @@
+Use the following context to answer the question. If the context doesn't contain the answer, say "I don't have enough information to answer."
+
+Context:
+{context}
+
+Question:
+{question}
+
+Answer:

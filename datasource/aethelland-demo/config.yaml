@@ -1,0 +1,9 @@
+---
+- data:
+    file: "data.txt"
+- prompt:
+    template: "rag_template.txt"
+- llm:
+    model-name: "codegemma:latest"
+    embeddings: "nomic-embed-text"
+    

@@ -1,0 +1,18 @@
+[Unit]
+Description=Uvicorn systemd service for Agent-Assembly-Line.
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+ExecStart=.env/bin/uvicorn src.rest:app --port 7999 --reload
+User=ubuntu
+WorkingDirectory=.
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+RestartSec=1
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
