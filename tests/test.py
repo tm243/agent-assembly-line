@@ -4,6 +4,7 @@ Agent-Assembly-Line
 
 import unittest, os
 from src.chain import *
+from src.memory import *
 import asyncio
 
 class TestChain(unittest.TestCase):
@@ -29,6 +30,14 @@ class TestChain(unittest.TestCase):
         print(question + ":", text)
         self.assertIn("I cannot answer this question", text, "Name of country, without RAG")
         chain.cleanup()
+
+    def test_memory(self):
+
+        chain = Chain("datasource/aethelland-demo/")
+        chain.memory_strategy = MemoryStrategy.SUMMARY
+        question = "Are dinosaurs in the country? Short answer."
+        text = chain.do_chain(question)
+        chain.save_memory()
 
 if __name__ == '__main__':
     unittest.main()

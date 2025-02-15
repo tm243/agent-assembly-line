@@ -3,6 +3,7 @@ Agent-Assembly-Line
 """
 
 from src.config import Config
+from src.memory import *
 
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -21,6 +22,7 @@ class Chain():
     RAG_TEMPLATE = None
     vectorstore = None
     embeddings = None
+    memory_strategy = MemoryStrategy.NO_MEMORY
 
     def __init__(self, datasource_path):
         config = Config(datasource_path)
@@ -33,6 +35,7 @@ class Chain():
         self.embeddings = OllamaEmbeddings(model=config.embeddings)
         self.vectorstore = self.load_data(config.doc)
         self.model = OllamaLLM(model=config.model_name)
+        self.memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent")
 
     def cleanup(self):
         self.embeddings._client._client.close()
@@ -76,4 +79,17 @@ class Chain():
         except Exception as e:
             print(e)
 
+        self.memory.save_context({"input": prompt}, {"output": text})
+        print(self.memory.load_memory_variables({}))
+
+
         return text
+
+    def save_memory(self):
+        with open("memory_summary.txt", "w") as f:
+            f.write(self.memory.load_memory_variables({})["history"])
+
+    def load_memory(self):
+        with open("memory_summary.txt", "r") as f:
+            saved_memory = f.read()
+            self.memory = saved_memory

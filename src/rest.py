@@ -5,12 +5,16 @@ Agent-Assembly-Line
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from chain import *
+from src.chain import *
+from src.memory import *
 
 app = FastAPI()
 
 class RequestItem(BaseModel):
     prompt: str
+
+class MessageItem(BaseModel):
+    message: str
 
 @app.get('/')
 def index():
@@ -18,10 +22,10 @@ def index():
         "info": ["post request to localhost:7999/question"]
     }
 
-@app.post("/question")
+@app.post("/api/question")
 def askyourdoc_question(request: RequestItem):
     prompt = request.prompt
-    chain = Chain("datasource/demo/")
+    chain = Chain("datasource/aethelland-demo/")
 
     text = chain.do_chain(prompt)
     return { "answer" : text }
