@@ -4,16 +4,37 @@
  * See the LICENSE file in the root directory for details.
  */
 
-import React, { useState } from 'react';
-import { Box, TextField, Button } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, TextField, Button, Typography } from '@mui/material';
 import Chat from './Chat';
 import PulsingDot from './PulsingDot';
-import { sendMessage, Message } from '../services/ApiService';
+import { sendMessage, Message, fetchInfo } from '../services/ApiService';
 
 const MainLayout = () => {
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const [name, setName] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [llm, setLlm] = useState<string>('');
+  const [doc, setDoc] = useState<string>('');
+
+  useEffect(() => {
+    const loadInfo = async () => {
+      try {
+        const fetchedInfo = await fetchInfo();
+        const info: { name: string, description: string } = fetchedInfo;
+        setName(info.name);
+        setDescription(info.description);
+        setLlm(fetchedInfo.LLM);
+        setDoc(fetchedInfo.doc);
+      } catch (error) {
+        console.error('Failed to fetch info:', error);
+      }
+    };
+
+    loadInfo();
+  }, []);
 
   const handleSendMessage = async () => {
     if (inputValue.trim() === '') return;
@@ -57,7 +78,16 @@ const MainLayout = () => {
         </Box>
       </Box>
       <Box flex={1} p={2}>
-        {/* Content for the right panel */}
+        <Box flex={1} p={2}>
+            <Typography variant="h6">Information</Typography>
+            <br />
+            <Typography variant="body1">{name}</Typography>
+            <Typography variant="body2">{description}</Typography>
+            <br />
+            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>used LLM: {llm}</Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>used doc: {doc}</Typography>
+        </Box>
+
       </Box>
     </Box>
   );

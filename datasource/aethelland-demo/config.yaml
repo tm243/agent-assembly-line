@@ -1,9 +1,9 @@
----
-- data:
-    file: "data.txt"
-- prompt:
-    template: "rag_template.txt"
-- llm:
-    model-name: "codegemma:latest"
-    embeddings: "nomic-embed-text"
-    
+name: "Aethelland Demo"
+description: "This is a demo of the Aethelland agent. Ask questions about the country, like 'What is the capital of Aethelland?'"
+data:
+  file: "data.txt"
+prompt:
+  template: "rag_template.txt"
+llm:
+  model-name: "codegemma:latest"
+  embeddings: "nomic-embed-text"

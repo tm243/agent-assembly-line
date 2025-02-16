@@ -28,6 +28,7 @@ class Chain():
 
     def __init__(self, datasource_path):
         config = Config(datasource_path)
+        self.config = config
 
         rag_template_file = open(config.prompt_template, "r")
         self.RAG_TEMPLATE = rag_template_file.read()

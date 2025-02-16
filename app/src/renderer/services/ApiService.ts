@@ -10,6 +10,12 @@ export interface Message {
   text: string;
 }
 
+export interface Info {
+  name: string;
+  description: string;
+  LLM: string;
+  doc: string;
+}
 const API_URL = 'http://localhost:8000/api';
 
 export const fetchMessages = async (): Promise<Message[]> => {
@@ -34,4 +40,13 @@ export const sendMessage = async (message: Message): Promise<string> => {
   const data = await response.json();
   console.log(data.answer);
   return data.answer;
+};
+
+export const fetchInfo = async (): Promise<Info> => {
+    const response = await fetch(`${API_URL}/info`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch information');
+    }
+    const data = await response.json();
+    return data;
 };

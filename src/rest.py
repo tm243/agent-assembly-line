@@ -9,6 +9,7 @@ from src.chain import *
 from src.memory import *
 
 app = FastAPI()
+chain = Chain("datasource/aethelland-demo/")
 
 class RequestItem(BaseModel):
     prompt: str
@@ -22,10 +23,18 @@ def index():
         "info": ["post request to localhost:7999/question"]
     }
 
-chain = Chain("datasource/aethelland-demo/")
+@app.get('/api/info')
+def info():
+    return {
+        "name": chain.config.name,
+        "description": chain.config.description,
+        "LLM": chain.config.model_name,
+        "doc": chain.config.doc,
+    }
+
 
 @app.post("/api/question")
-def askyourdoc_question(request: RequestItem):
+def question(request: RequestItem):
     prompt = request.prompt
 
     text = chain.do_chain(prompt)
