@@ -1,6 +1,8 @@
 {
-  "name": "app",
+  "name": "agent-assembly-line-showcase-app",
+  "productName": "Agent Assembly Line Showcase App",
   "version": "1.0.0",
+  "description": "This is a demo app of Agent Assembly Line.",
   "main": "dist/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,7 +13,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",

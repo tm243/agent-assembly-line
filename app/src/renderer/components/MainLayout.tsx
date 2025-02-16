@@ -79,8 +79,6 @@ const MainLayout = () => {
       </Box>
       <Box flex={1} p={2}>
         <Box flex={1} p={2}>
-            <Typography variant="h6">Information</Typography>
-            <br />
             <Typography variant="body1">{name}</Typography>
             <Typography variant="body2">{description}</Typography>
             <br />

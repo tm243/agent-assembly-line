@@ -16,6 +16,7 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: true,
     },
+    title: "Agent Assembly Line Showcase App",
   });
 
   mainWindow.loadFile(path.join(__dirname, '../public/index.html'));
