@@ -22,10 +22,11 @@ def index():
         "info": ["post request to localhost:7999/question"]
     }
 
+chain = Chain("datasource/aethelland-demo/")
+
 @app.post("/api/question")
 def askyourdoc_question(request: RequestItem):
     prompt = request.prompt
-    chain = Chain("datasource/aethelland-demo/")
 
     text = chain.do_chain(prompt)
     return { "answer" : text }

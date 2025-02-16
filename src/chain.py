@@ -13,6 +13,8 @@ from langchain_ollama.llms import OllamaLLM
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.chat_history import BaseChatMessageHistory
 
 import asyncio
 
@@ -35,7 +37,8 @@ class Chain():
         self.embeddings = OllamaEmbeddings(model=config.embeddings)
         self.vectorstore = self.load_data(config.doc)
         self.model = OllamaLLM(model=config.model_name)
-        self.memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent")
+        self.summary_memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent")
+        self.conversational_memory = ConversationBufferMemory()
 
     def cleanup(self):
         self.embeddings._client._client.close()
@@ -57,6 +60,7 @@ class Chain():
     def do_chain(self, prompt, skip_rag = False):
 
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
+        messages = self.conversational_memory.load_memory_variables({})
 
         """ test without rag, to see the difference """
         if skip_rag:
@@ -66,12 +70,17 @@ class Chain():
 #            print("---")
             return response_message
 
+        # @todo: session id to separate conversations
         chain = (
-            RunnablePassthrough.assign(context=lambda input: Chain.format_docs(input["context"]))
+            RunnablePassthrough.assign(
+                    context=lambda input: Chain.format_docs(input["context"]),
+                    history=lambda input: messages["history"]
+            )
             | rag_prompt
             | self.model
             | StrOutputParser()
         )
+
         docs = self.vectorstore.similarity_search(prompt, 2)
         text = ""
         try:
@@ -79,17 +88,16 @@ class Chain():
         except Exception as e:
             print(e)
 
-        self.memory.save_context({"input": prompt}, {"output": text})
-        print(self.memory.load_memory_variables({}))
-
+        self.conversational_memory.save_context({"question": prompt}, {"answer": text})
+        self.summary_memory.save_context({"input": prompt}, {"output": text})
 
         return text
 
     def save_memory(self):
         with open("memory_summary.txt", "w") as f:
-            f.write(self.memory.load_memory_variables({})["history"])
+            f.write(self.summary_memory.load_memory_variables({})["history"])
 
     def load_memory(self):
         with open("memory_summary.txt", "r") as f:
             saved_memory = f.read()
-            self.memory = saved_memory
+            self.summary_memory = saved_memory

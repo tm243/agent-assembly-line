@@ -1,4 +1,7 @@
-Use the following context to answer the question. If the context doesn't contain the answer, say "I don't have enough information to answer."
+Use the following context to answer the question, or reply. If the context doesn't contain the answer, say "I don't have enough information to reply."
+
+Chat history:
+{history}
 
 Context:
 {context}
