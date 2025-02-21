@@ -5,7 +5,7 @@ Agent-Assembly-Line
 from src.config import Config
 from src.memory import *
 
-from langchain_community.document_loaders import TextLoader
+from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_ollama import OllamaEmbeddings
@@ -44,11 +44,16 @@ class Chain():
     def cleanup(self):
         self.embeddings._client._client.close()
      
-    def load_data(self, doc):
-        loader = TextLoader(doc)
-        data = loader.load()
+    def load_data(self, file_path):
+        data = None
+        if file_path.endswith('.txt'):
+            data = TextLoader(file_path).load()
+        elif file_path.endswith('.pdf'):
+            data = PyPDFLoader(file_path).load()
+        else:
+            raise ValueError("Unsupported file format")
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=0)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
         all_splits = text_splitter.split_documents(data)
 
         self.vectorstore = Chroma.from_documents(documents=all_splits, embedding=self.embeddings)
@@ -82,7 +87,8 @@ class Chain():
             | StrOutputParser()
         )
 
-        docs = self.vectorstore.similarity_search(prompt, 2)
+        docs = self.vectorstore.similarity_search(prompt, 10)
+
         text = ""
         try:
             text = chain.invoke({"context": docs, "question": prompt})
