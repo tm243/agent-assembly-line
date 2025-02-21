@@ -82,8 +82,8 @@ const MainLayout = () => {
             <Typography variant="body1">{name}</Typography>
             <Typography variant="body2">{description}</Typography>
             <br />
-            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>used LLM: {llm}</Typography>
-            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>used doc: {doc}</Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>used LLM: {llm}</Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>used doc: {doc}</Typography>
         </Box>
 
       </Box>
