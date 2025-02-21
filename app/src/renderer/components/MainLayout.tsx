@@ -70,6 +70,8 @@ const MainLayout = () => {
                 placeholder="Type something..."
                 variant="outlined"
                 value={inputValue}
+                size='small'
+                onKeyDown={(e) => {if(e.key === 'Enter') {handleSendMessage();}}}
                 onChange={(e) => setInputValue(e.target.value)}
             />
             <Button variant="contained" color="primary" onClick={handleSendMessage}>
