@@ -119,7 +119,7 @@ const MainLayout = () => {
       </Box>
       <Box flex={1} p={2}>
         <Box flex={1} p={2}>
-            <FormControl fullWidth>
+            <FormControl fullWidth size='small'>
                 <InputLabel>Data Source</InputLabel>
                 <Select
                     value={selectedDataSource}
