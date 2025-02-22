@@ -1,6 +1,7 @@
 """
 Agent-Assembly-Line
 """
+import os
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -17,11 +18,23 @@ class RequestItem(BaseModel):
 class MessageItem(BaseModel):
     message: str
 
+class AgentSelectItem(BaseModel):
+    agent: str
+
 @app.get('/')
 def index():
     return {
-        "info": ["post request to localhost:7999/question"]
+        "info": ["post your request to localhost:7999/question"]
     }
+
+def get_data_sources():
+    datasource_path = "datasource/"
+    folders = [f.name for f in os.scandir(datasource_path) if f.is_dir()]
+    return folders
+
+@app.get('/api/data-sources')
+def data_sources():
+    return get_data_sources()
 
 @app.get('/api/info')
 def info():
@@ -29,8 +42,15 @@ def info():
         "name": chain.config.name,
         "description": chain.config.description,
         "LLM": chain.config.model_name,
-        "doc": chain.config.doc,
+        "doc": chain.config.doc
     }
+
+@app.post("/api/select-agent")
+def select_agent(request: AgentSelectItem):
+    global chain
+    agent = request.agent
+    chain = Chain("datasource/" + agent + "/")
+    return {}
 
 
 @app.post("/api/question")

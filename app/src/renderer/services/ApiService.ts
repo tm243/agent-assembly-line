@@ -38,14 +38,35 @@ export const sendMessage = async (message: Message): Promise<string> => {
     throw new Error('Failed to send message');
   }
   const data = await response.json();
-  console.log(data.answer);
   return data.answer;
 };
+
+export const selectAgent = async (agent: String): Promise<void> => {
+    const response = await fetch(`${API_URL}/select-agent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ agent: agent }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to select agent');
+    }
+  };
 
 export const fetchInfo = async (): Promise<Info> => {
     const response = await fetch(`${API_URL}/info`);
     if (!response.ok) {
         throw new Error('Failed to fetch information');
+    }
+    const data = await response.json();
+    return data;
+};
+
+export const fetchDataSources = async (): Promise<string[]> => {
+    const response = await fetch(`${API_URL}/data-sources`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch data sources');
     }
     const data = await response.json();
     return data;

@@ -5,10 +5,12 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, Typography } from '@mui/material';
+import { Box, TextField, Button, Typography, MenuItem, Select, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
 import Chat from './Chat';
 import PulsingDot from './PulsingDot';
-import { sendMessage, Message, fetchInfo } from '../services/ApiService';
+import { sendMessage, Message, fetchInfo, selectAgent, fetchDataSources } from '../services/ApiService';
+
+const defaultAgent = "language-learning-demo";
 
 const MainLayout = () => {
   const [inputValue, setInputValue] = useState('');
@@ -18,8 +20,20 @@ const MainLayout = () => {
   const [description, setDescription] = useState<string>('');
   const [llm, setLlm] = useState<string>('');
   const [doc, setDoc] = useState<string>('');
+  const [availableDataSources, setAvailableDataSources] = useState<string[]>([]);
+  const [selectedDataSource, setSelectedDataSource] = useState<string>('');
 
   useEffect(() => {
+    const loadDefaultAgent = async () => {
+        try {
+          setSelectedDataSource(defaultAgent);
+          await selectAgent(defaultAgent);
+          loadInfo();
+        } catch (error) {
+          console.error('Failed to select agent:', error);
+        }
+    };
+
     const loadInfo = async () => {
       try {
         const fetchedInfo = await fetchInfo();
@@ -33,7 +47,17 @@ const MainLayout = () => {
       }
     };
 
-    loadInfo();
+    const loadAvailableDataSources = async () => {
+        try {
+          const sources = await fetchDataSources();
+          setAvailableDataSources(sources);
+        } catch (error) {
+          console.error('Failed to fetch data sources:', error);
+        }
+      };
+
+    loadDefaultAgent();
+    loadAvailableDataSources();
   }, []);
 
   const handleSendMessage = async () => {
@@ -52,6 +76,20 @@ const MainLayout = () => {
       console.error('Failed to send message:', error);
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleDataSourceChange = async (event: SelectChangeEvent<string>) => {
+    const newDataSource = event.target.value as string;
+    setSelectedDataSource(newDataSource);
+    try {
+      await selectAgent(newDataSource);
+      const fetchedInfo = await fetchInfo();
+      setName(fetchedInfo.name);
+      setDescription(fetchedInfo.description);
+      setDoc(fetchedInfo.doc);
+    } catch (error) {
+      console.error('Failed to select agent:', error);
     }
   };
 
@@ -81,6 +119,19 @@ const MainLayout = () => {
       </Box>
       <Box flex={1} p={2}>
         <Box flex={1} p={2}>
+            <FormControl fullWidth>
+                <InputLabel>Data Source</InputLabel>
+                <Select
+                    value={selectedDataSource}
+                    onChange={handleDataSourceChange}
+                >
+                    {availableDataSources.map((source) => (
+                    <MenuItem key={source} value={source}>
+                        {source}
+                    </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
             <Typography variant="body1">{name}</Typography>
             <Typography variant="body2">{description}</Typography>
             <br />
