@@ -60,3 +60,8 @@ def question(request: RequestItem):
     text = chain.do_chain(prompt)
     return { "answer" : text }
 
+@app.get('/api/memory')
+def memory():
+    return {
+        "memory": chain.get_summary_memory()
+    }

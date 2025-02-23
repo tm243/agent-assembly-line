@@ -38,8 +38,10 @@ class Chain():
         self.embeddings = OllamaEmbeddings(model=config.embeddings)
         self.vectorstore = self.load_data(config.doc)
         self.model = OllamaLLM(model=config.model_name)
-        self.summary_memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent")
-        self.conversational_memory = ConversationBufferMemory()
+        self.summary_memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent", return_messages=True)
+        self.buffer_memory = ConversationBufferMemory()
+        self.memory_strategy = MemoryStrategy.SUMMARY
+        self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=config)
 
     def cleanup(self):
         self.embeddings._client._client.close()
@@ -66,7 +68,7 @@ class Chain():
     def do_chain(self, prompt, skip_rag = False):
 
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
-        messages = self.conversational_memory.load_memory_variables({})
+        messages = self.buffer_memory.load_memory_variables({})
 
         """ test without rag, to see the difference """
         if skip_rag:
@@ -95,7 +97,8 @@ class Chain():
         except Exception as e:
             print(e)
 
-        self.conversational_memory.save_context({"question": prompt}, {"answer": text})
+        self.memory_assistant.add_message(prompt, text)
+        self.buffer_memory.save_context({"question": prompt}, {"answer": text})
         self.summary_memory.save_context({"input": prompt}, {"output": text})
 
         return text
@@ -108,3 +111,6 @@ class Chain():
         with open("memory_summary.txt", "r") as f:
             saved_memory = f.read()
             self.summary_memory = saved_memory
+
+    def get_summary_memory(self):
+        return self.memory_assistant.summary_memory
