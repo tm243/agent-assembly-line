@@ -9,8 +9,9 @@ import { Box, TextField, Button, Typography, MenuItem, Select, FormControl, Inpu
 import Chat from './Chat';
 import PulsingDot from './PulsingDot';
 import { sendMessage, Message, fetchInfo, selectAgent, fetchDataSources } from '../services/ApiService';
+import MemoryDisplay from './MemoryDisplay';
 
-const defaultAgent = "language-learning-demo";
+const defaultAgent = "chat-demo";
 
 const MainLayout = () => {
   const [inputValue, setInputValue] = useState('');
@@ -117,8 +118,8 @@ const MainLayout = () => {
             </Button>
         </Box>
       </Box>
-      <Box flex={1} p={2}>
-        <Box flex={1} p={2}>
+      <Box flex={1} display="flex" flexDirection="column" borderRight="1px solid #ccc">
+          <Box flex={1} p={2}>
             <FormControl fullWidth size='small'>
                 <InputLabel>Data Source</InputLabel>
                 <Select
@@ -137,10 +138,15 @@ const MainLayout = () => {
             <br />
             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>used LLM: {llm}</Typography>
             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>used doc: {doc}</Typography>
+          </Box>
+          <Box sx={{flexShrink: 0, py: 2, height: "40%", backgroundColor: "#f8f9fa", borderTop: "1px solid #ccc", width: "100%"}}>
+            <Typography variant="body2" sx={{ fontSize: "0.75rem", color: "#AAA", marginLeft: 1 }} align="left">
+              Memory
+            </Typography>
+            <MemoryDisplay />
+          </Box>
         </Box>
-
       </Box>
-    </Box>
   );
 };
 

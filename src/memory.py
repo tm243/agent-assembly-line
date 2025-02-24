@@ -19,6 +19,8 @@ class MemoryStrategy():
 class MemoryAssistant():
 
     strategy = MemoryStrategy.NO_MEMORY
+    summary_memory = ""
+    buffer_memory = None
 
     def __init__(self, strategy=MemoryStrategy.NO_MEMORY, model=None, config=None):
         self.config = config

@@ -71,3 +71,12 @@ export const fetchDataSources = async (): Promise<string[]> => {
     const data = await response.json();
     return data;
 };
+
+export const fetchMemory = async (): Promise<string> => {
+    const response = await fetch(`${API_URL}/memory`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch memory');
+    }
+    const data = await response.json();
+    return data.memory;
+};
