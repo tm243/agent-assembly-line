@@ -10,7 +10,7 @@ import asyncio
 class TestChain(unittest.TestCase):
 
     def test_question_aethelland(self):
-        chain = Chain("datasource/aethelland-demo/")
+        chain = Chain("aethelland-demo")
 
         question = "How many people live in the country? Short answer."
         text = chain.do_chain(question)
@@ -33,11 +33,13 @@ class TestChain(unittest.TestCase):
 
     def test_memory(self):
 
-        chain = Chain("datasource/aethelland-demo/")
+        chain = Chain("aethelland-demo")
         chain.memory_strategy = MemoryStrategy.SUMMARY
         question = "Are dinosaurs in the country? Short answer."
         text = chain.do_chain(question)
         chain.save_memory()
+        stored_memory = chain.load_memory()
+        self.assertIn("dinosaurs", stored_memory, "Dinosaurs in country")
 
 if __name__ == '__main__':
     unittest.main()

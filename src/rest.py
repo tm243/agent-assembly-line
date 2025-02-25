@@ -10,7 +10,7 @@ from src.chain import *
 from src.memory import *
 
 app = FastAPI()
-chain = Chain("datasource/aethelland-demo/")
+chain = Chain("chat-demo")
 
 class RequestItem(BaseModel):
     prompt: str
@@ -28,8 +28,17 @@ def index():
     }
 
 def get_data_sources():
-    datasource_path = "datasource/"
-    folders = [f.name for f in os.scandir(datasource_path) if f.is_dir()]
+    local_datasource_path = "datasource/"
+    user_datasource_path = os.path.expanduser("~/.local/share/agent-assembly-line/agents/")
+
+    folders = []
+
+    if os.path.exists(local_datasource_path):
+        folders.extend([f.name for f in os.scandir(local_datasource_path) if f.is_dir()])
+
+    if os.path.exists(user_datasource_path):
+        folders.extend([f.name for f in os.scandir(user_datasource_path) if f.is_dir()])
+
     return folders
 
 @app.get('/api/data-sources')
@@ -49,7 +58,7 @@ def info():
 def select_agent(request: AgentSelectItem):
     global chain
     agent = request.agent
-    chain = Chain("datasource/" + agent + "/")
+    chain = Chain(agent)
     return {}
 
 

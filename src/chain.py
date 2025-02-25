@@ -16,6 +16,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 
+import os
 import asyncio
 
 class Chain():
@@ -26,13 +27,12 @@ class Chain():
     embeddings = None
     memory_strategy = MemoryStrategy.NO_MEMORY
 
-    def __init__(self, datasource_path):
-        config = Config(datasource_path)
+    def __init__(self, agent_name):
+        config = Config(agent_name)
         self.config = config
 
-        rag_template_file = open(config.prompt_template, "r")
-        self.RAG_TEMPLATE = rag_template_file.read()
-        rag_template_file.close()
+        with open(config.prompt_template, "r") as rag_template_file:
+            self.RAG_TEMPLATE = rag_template_file.read()
 
         # do before: llama pull nomic-embed-text
         self.embeddings = OllamaEmbeddings(model=config.embeddings)
@@ -105,12 +105,13 @@ class Chain():
 
     def save_memory(self):
         with open("memory_summary.txt", "w") as f:
-            f.write(self.summary_memory.load_memory_variables({})["history"])
+            sm = self.summary_memory.load_memory_variables({})["history"]
+            for s in sm:
+                f.write(s.content)
 
     def load_memory(self):
         with open("memory_summary.txt", "r") as f:
-            saved_memory = f.read()
-            self.summary_memory = saved_memory
+            return f.read()
 
     def get_summary_memory(self):
         return self.memory_assistant.summary_memory
