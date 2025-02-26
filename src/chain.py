@@ -5,7 +5,7 @@ Agent-Assembly-Line
 from src.config import Config
 from src.memory import *
 
-from langchain_community.document_loaders import TextLoader, PyPDFLoader
+from langchain_community.document_loaders import TextLoader, PyPDFLoader, SeleniumURLLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_ollama import OllamaEmbeddings
@@ -17,7 +17,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 
 import os
-import asyncio
+import asyncio, pprint
 
 class Chain():
 
@@ -36,7 +36,7 @@ class Chain():
 
         # do before: llama pull nomic-embed-text
         self.embeddings = OllamaEmbeddings(model=config.embeddings)
-        self.vectorstore = self.load_data(config.doc)
+        self.vectorstore = self.load_data()
         self.model = OllamaLLM(model=config.model_name)
         self.summary_memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent", return_messages=True)
         self.buffer_memory = ConversationBufferMemory()
@@ -46,21 +46,45 @@ class Chain():
     def cleanup(self):
         self.embeddings._client._client.close()
      
-    def load_data(self, file_path):
+    def load_data(self):
+
+        config = self.config
+        file_path = config.doc
+        url = config.url
         data = None
-        if file_path.endswith('.txt'):
-            data = TextLoader(file_path).load()
-        elif file_path.endswith('.pdf'):
-            data = PyPDFLoader(file_path).load()
+
+        if not os.path.exists(file_path):
+            if url:
+                fdata = None
+                try:
+                    fdata = SeleniumURLLoader([url]).load()
+                except Exception as e:
+                    print(e)
+                else:
+                    data = [fdata[0]]
+                    with open("debug.txt", "w") as f:
+                        f.write(fdata[0].page_content)
+
+        if file_path:
+            print("Loading data from:", file_path)
+            if file_path.endswith('.txt'):
+                data = TextLoader(file_path).load()
+            elif file_path.endswith('.pdf'):
+                data = PyPDFLoader(file_path).load()
+            else:
+                print("Unsupported file format")
         else:
-            raise ValueError("Unsupported file format")
+            print("No data file found, skipping")
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-        all_splits = text_splitter.split_documents(data)
+        if data:
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+            all_splits = text_splitter.split_documents(data)
 
-        self.vectorstore = Chroma.from_documents(documents=all_splits, embedding=self.embeddings)
-        return self.vectorstore
-
+            self.vectorstore = Chroma.from_documents(documents=all_splits, embedding=self.embeddings)
+            return self.vectorstore
+        else:
+            print("Config:", config.doc, config.url)
+            raise ValueError("No data loaded")
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)

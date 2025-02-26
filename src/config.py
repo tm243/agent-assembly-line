@@ -6,10 +6,14 @@ import yaml
 
 class Config:
 
-    def __init__(self, agent_name):
+   doc = ""
+   url = ""
+
+   def __init__(self, agent_name):
+        print(f"Loading configuration for agent: {agent_name}")
         self.load_conf_file(agent_name)
    
-    def load_conf_file(self, agent_name):
+   def load_conf_file(self, agent_name):
         user_datasource_path = os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{agent_name}")
         local_datasource_path = f"datasource/{agent_name}"
 
@@ -28,7 +32,10 @@ class Config:
             config = yaml.safe_load(f)
             self.name            = config["name"]
             self.description     = config["description"]
-            self.doc             = datasource_path + config["data"]["file"]
+            if "file" in config["data"]:
+               self.doc             = datasource_path + config["data"]["file"]
+            if "url" in config["data"]:
+               self.url             = config["data"]["url"]
             self.prompt_template = datasource_path + config["prompt"]["template"]
             self.model_name      = config["llm"]["model-name"]
             self.embeddings      = config["llm"]["embeddings"]
