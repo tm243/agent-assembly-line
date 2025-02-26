@@ -8,6 +8,11 @@ class Config:
 
    doc = ""
    url = ""
+   wait_class_name = ""
+   prompt_template = ""
+   model_name = ""
+   embeddings = ""
+   memory_prompt = ""
 
    def __init__(self, agent_name):
         print(f"Loading configuration for agent: {agent_name}")
@@ -36,6 +41,9 @@ class Config:
                self.doc             = datasource_path + config["data"]["file"]
             if "url" in config["data"]:
                self.url             = config["data"]["url"]
+            if "wait-class-name" in config["data"]:
+               self.wait_class_name = config["data"]["wait-class-name"]
+
             self.prompt_template = datasource_path + config["prompt"]["template"]
             self.model_name      = config["llm"]["model-name"]
             self.embeddings      = config["llm"]["embeddings"]
