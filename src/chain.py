@@ -4,21 +4,19 @@ Agent-Assembly-Line
 
 from src.config import Config
 from src.memory import *
-from src.web_loader import WebLoader
+from src.data_loaders.data_loader_factory import DataLoaderFactory
 
-from langchain_community.document_loaders import TextLoader, PyPDFLoader, SeleniumURLLoader, RSSFeedLoader, JSONLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_chroma import Chroma
-from langchain_ollama import OllamaEmbeddings
-from langchain_ollama.llms import OllamaLLM
-from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 
-import os
-import asyncio, pprint, datetime
+import datetime
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from langchain_ollama import OllamaEmbeddings
+from langchain_ollama.llms import OllamaLLM
+from langchain_core.output_parsers import StrOutputParser
 
 class Chain():
 
@@ -37,7 +35,7 @@ class Chain():
 
         # do before: llama pull nomic-embed-text
         self.embeddings = OllamaEmbeddings(model=config.embeddings)
-        self.vectorstore = self.load_data()
+        self.vectorstore = self.load_data(config)
         self.model = OllamaLLM(model=config.model_name)
         self.summary_memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent", return_messages=True)
         self.buffer_memory = ConversationBufferMemory()
@@ -46,51 +44,11 @@ class Chain():
 
     def cleanup(self):
         self.embeddings._client._client.close()
-     
-    def load_data(self):
 
-        config = self.config
-        file_path = config.doc
-        url = config.url
-        data = None
-        fdata = None
-
-        if not os.path.exists(file_path):
-            if url:
-                import requests
-                try:
-                    response = requests.head(url)
-                    content_type = response.headers.get("Content-Type", "")
-                    if "json" in content_type:
-                        response = requests.get(url)
-                        response.raise_for_status()
-                        json_content = response.content.decode("utf-8")
-                        loader = JSONLoader(json_content, jq_schema=".[0]")
-                        fdata = loader.load()
-                        data = [fdata[0]]
-                    elif "xml" in content_type or "rss" in content_type:
-                        loader = RSSFeedLoader(urls=[url])
-                        fdata = loader.load()
-                        data = [fdata[0]]
-                    else:
-                        web_loader = WebLoader()
-                        fdata = web_loader.load_page(url, self.config.wait_class_name)
-                        if fdata:
-                            data = [fdata]
-                        web_loader.close()
-                except Exception as e:
-                    print(f"Error fetching {url}, exception: {e}")
-
-        if file_path:
-            print("Loading data from:", file_path)
-            if file_path.endswith('.txt'):
-                data = TextLoader(file_path).load()
-            elif file_path.endswith('.pdf'):
-                data = PyPDFLoader(file_path).load()
-            else:
-                print("Unsupported file format")
-        else:
-            print("No data file found, skipping")
+    def load_data(self, config) -> Chroma:
+        source_type, source_path = DataLoaderFactory.guess_source_type(config)
+        loader = DataLoaderFactory.get_loader(source_type)
+        data = loader.load_data(source_path)
 
         if data:
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
@@ -99,7 +57,7 @@ class Chain():
             self.vectorstore = Chroma.from_documents(documents=all_splits, embedding=self.embeddings)
             return self.vectorstore
         else:
-            print("Config:", config.doc, config.url)
+            print("Config:", self.config.doc, self.config.url)
             raise ValueError("No data loaded")
 
     def format_docs(docs):
