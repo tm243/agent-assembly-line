@@ -25,6 +25,10 @@ const MainLayout = () => {
   const [availableDataSources, setAvailableDataSources] = useState<string[]>([]);
   const [selectedDataSource, setSelectedDataSource] = useState<string>('');
 
+  const handleSystemMessage = (message: Message) => {
+    setMessages((prevMessages) => [...prevMessages, message]);
+  };
+
   useEffect(() => {
     const loadDefaultAgent = async () => {
         try {
@@ -114,7 +118,7 @@ const MainLayout = () => {
                 onKeyDown={(e) => {if(e.key === 'Enter') {handleSendMessage();}}}
                 onChange={(e) => setInputValue(e.target.value)}
             />
-            <FileUploadButton />
+            <FileUploadButton onSystemMessage={handleSystemMessage} />
             <Button variant="contained" color="primary" onClick={handleSendMessage}>
                 Send
             </Button>

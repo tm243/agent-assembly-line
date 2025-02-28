@@ -5,6 +5,9 @@ Agent-Assembly-Line
 from src.config import Config
 from src.memory import *
 from src.data_loaders.data_loader_factory import DataLoaderFactory
+from src.exceptions import DataLoadError, EmptyDataError
+
+import os
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
@@ -61,8 +64,9 @@ class Chain():
             self.agent_vectorstore = Chroma("context", self.embeddings)
         return self.agent_vectorstore
 
-    def add_data(self, filepath):
+    def add_data(self, upload_directory, filename):
         try:
+            filepath = os.path.join(upload_directory, filename)
             source_type = DataLoaderFactory.guess_file_type(filepath)
             loader = DataLoaderFactory.get_loader(source_type)
             data = loader.load_data(filepath)
@@ -70,11 +74,13 @@ class Chain():
                 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
                 all_splits = text_splitter.split_documents(data)
                 self.user_vectorstore.add_documents(all_splits)
+                total_text_length = sum(len(doc.page_content) for doc in all_splits)
+                return total_text_length
             else:
-                raise ValueError("No data loaded from", filepath, "maybe empty?")
+                raise EmptyDataError(filename)
         except Exception as e:
             print("Adding user data failed:", e)
-            raise ValueError("Adding user data failed")
+            raise DataLoadError(f"Adding **{filename}** of type {source_type} failed: {e}")
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)

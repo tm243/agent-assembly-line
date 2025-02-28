@@ -7,7 +7,7 @@
 import axios from 'axios';
 
 export interface Message {
-  sender: 'user' | 'llm';
+  sender: 'user' | 'llm' | 'system';
   text: string;
 }
 
@@ -17,6 +17,7 @@ export interface Info {
   LLM: string;
   doc: string;
 }
+
 const API_URL = 'http://localhost:8000/api';
 
 export const fetchMessages = async (): Promise<Message[]> => {
@@ -42,50 +43,49 @@ export const sendMessage = async (message: Message): Promise<string> => {
   return data.answer;
 };
 
-export const selectAgent = async (agent: String): Promise<void> => {
-    const response = await fetch(`${API_URL}/select-agent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ agent: agent }),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to select agent');
-    }
-  };
+export const selectAgent = async (agent: string): Promise<void> => {
+  const response = await fetch(`${API_URL}/select-agent`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ agent: agent }),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to select agent');
+  }
+};
 
 export const fetchInfo = async (): Promise<Info> => {
-    const response = await fetch(`${API_URL}/info`);
-    if (!response.ok) {
-        throw new Error('Failed to fetch information');
-    }
-    const data = await response.json();
-    return data;
+  const response = await fetch(`${API_URL}/info`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch information');
+  }
+  const data = await response.json();
+  return data;
 };
 
 export const fetchDataSources = async (): Promise<string[]> => {
-    const response = await fetch(`${API_URL}/data-sources`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch data sources');
-    }
-    const data = await response.json();
-    return data;
+  const response = await fetch(`${API_URL}/data-sources`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch data sources');
+  }
+  const data = await response.json();
+  return data;
 };
 
 export const fetchMemory = async (): Promise<string> => {
-    const response = await fetch(`${API_URL}/memory`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch memory');
-    }
-    const data = await response.json();
-    return data.memory;
+  const response = await fetch(`${API_URL}/memory`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch memory');
+  }
+  const data = await response.json();
+  return data.memory;
 };
 
-export const uploadFile = async (file: File): Promise<any> => {
+export const uploadFile = async (file: File): Promise<Message> => {
   const formData = new FormData();
   formData.append('file', file);
-
   try {
     const response = await axios.post(`${API_URL}/upload-file`, formData, {
       headers: {
@@ -93,9 +93,16 @@ export const uploadFile = async (file: File): Promise<any> => {
       },
     });
     console.log('File uploaded:', response.data);
-    return response.data;
+    return {
+      sender: 'system',
+      text: response.data.message || `File "${file.name}" uploaded successfully.`,
+    };
   } catch (error) {
-    // @todo show error to user
+    return {
+      sender: 'system',
+      text: (error as any).response?.data?.message || `File "${file.name}" not added. Error: ${(error as any).message}`,
+    };
+
     console.error('Error uploading file:', error);
     throw error;
   }

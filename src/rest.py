@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from src.chain import *
 from src.memory import *
+from src.exceptions import DataLoadError, EmptyDataError
 
 app = FastAPI()
 chain = Chain("chat-demo")
@@ -89,10 +90,13 @@ def upload_file(file: UploadFile = File(...)):
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        global chain
-        chain.add_data(file_path)
+        total_text_length = chain.add_data(upload_directory, file.filename)
 
+    except EmptyDataError as e:
+        return JSONResponse(content={"filename": file.filename, "message": e.message}, status_code=400)
+    except DataLoadError as e:
+        return JSONResponse(content={"filename": file.filename, "message": e.message}, status_code=500)
     except Exception as e:
         print("File upload failed:", e)
-        return JSONResponse(content={"error": str(e)}, status_code=500)
-    return JSONResponse(content={"filename": file.filename, "message": "File uploaded successfully"})
+        return JSONResponse(content={"filename": file.filename, "message": f'File "{file.filename}" not added. {e}'}, status_code=500)
+    return JSONResponse(content={"filename": file.filename, "message": f'File "{file.filename}" added successfully with {total_text_length} characters of text.'})

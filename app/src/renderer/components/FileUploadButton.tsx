@@ -1,9 +1,13 @@
 import React, { useRef } from 'react';
 import { IconButton } from '@mui/material';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
-import { uploadFile } from '../services/ApiService';
+import { uploadFile, Message } from '../services/ApiService';
 
-const FileUploadButton: React.FC = () => {
+interface FileUploadButtonProps {
+  onSystemMessage: (message: Message) => void;
+}
+
+const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onSystemMessage }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleButtonClick = () => {
@@ -17,8 +21,9 @@ const FileUploadButton: React.FC = () => {
     if (file) {
       console.log('Selected file:', file.name);
       try {
-        const response = await uploadFile(file);
-        console.log('File uploaded successfully:', response);
+        const systemMessage = await uploadFile(file);
+        console.log('File uploaded successfully:', systemMessage);
+        onSystemMessage(systemMessage);
       } catch (error) {
         console.error('Error uploading file:', error);
       }
