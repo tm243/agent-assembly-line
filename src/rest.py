@@ -2,8 +2,10 @@
 Agent-Assembly-Line
 """
 import os
+import shutil
 
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from src.chain import *
@@ -20,6 +22,9 @@ class MessageItem(BaseModel):
 
 class AgentSelectItem(BaseModel):
     agent: str
+
+class UploadFileItem(BaseModel):
+    file: UploadFile
 
 @app.get('/')
 def index():
@@ -61,7 +66,6 @@ def select_agent(request: AgentSelectItem):
     chain = Chain(agent)
     return {}
 
-
 @app.post("/api/question")
 def question(request: RequestItem):
     prompt = request.prompt
@@ -74,3 +78,21 @@ def memory():
     return {
         "memory": chain.get_summary_memory()
     }
+
+@app.post("/api/upload-file")
+def upload_file(file: UploadFile = File(...)):
+    try:
+        upload_directory = "uploads"
+        os.makedirs(upload_directory, exist_ok=True)
+        file_path = os.path.join(upload_directory, file.filename)
+
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        global chain
+        chain.add_data(file_path)
+
+    except Exception as e:
+        print("File upload failed:", e)
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+    return JSONResponse(content={"filename": file.filename, "message": "File uploaded successfully"})

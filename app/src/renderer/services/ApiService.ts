@@ -1,9 +1,10 @@
-
 /**
  * Agent Assembly Line
  * License Apache-2.0
  * See the LICENSE file in the root directory for details.
  */
+
+import axios from 'axios';
 
 export interface Message {
   sender: 'user' | 'llm';
@@ -79,4 +80,23 @@ export const fetchMemory = async (): Promise<string> => {
     }
     const data = await response.json();
     return data.memory;
+};
+
+export const uploadFile = async (file: File): Promise<any> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await axios.post(`${API_URL}/upload-file`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    console.log('File uploaded:', response.data);
+    return response.data;
+  } catch (error) {
+    // @todo show error to user
+    console.error('Error uploading file:', error);
+    throw error;
+  }
 };

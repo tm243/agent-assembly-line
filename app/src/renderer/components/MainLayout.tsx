@@ -10,6 +10,7 @@ import Chat from './Chat';
 import PulsingDot from './PulsingDot';
 import { sendMessage, Message, fetchInfo, selectAgent, fetchDataSources } from '../services/ApiService';
 import MemoryDisplay from './MemoryDisplay';
+import FileUploadButton from './FileUploadButton';
 
 const defaultAgent = "chat-demo";
 
@@ -113,6 +114,7 @@ const MainLayout = () => {
                 onKeyDown={(e) => {if(e.key === 'Enter') {handleSendMessage();}}}
                 onChange={(e) => setInputValue(e.target.value)}
             />
+            <FileUploadButton />
             <Button variant="contained" color="primary" onClick={handleSendMessage}>
                 Send
             </Button>

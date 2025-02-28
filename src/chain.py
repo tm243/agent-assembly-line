@@ -22,7 +22,8 @@ class Chain():
 
     local_embeddings = None
     RAG_TEMPLATE = None
-    vectorstore = None
+    agent_vectorstore = None
+    user_vectorstore = None
     embeddings = None
     memory_strategy = MemoryStrategy.NO_MEMORY
 
@@ -35,7 +36,8 @@ class Chain():
 
         # do before: llama pull nomic-embed-text
         self.embeddings = OllamaEmbeddings(model=config.embeddings)
-        self.vectorstore = self.load_data(config)
+        self.agent_vectorstore = self.load_data(config)
+        self.user_vectorstore = Chroma("uploaded-data",self.embeddings)
         self.model = OllamaLLM(model=config.model_name)
         self.summary_memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent", return_messages=True)
         self.buffer_memory = ConversationBufferMemory()
@@ -54,11 +56,25 @@ class Chain():
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
             all_splits = text_splitter.split_documents(data)
 
-            self.vectorstore = Chroma.from_documents(documents=all_splits, embedding=self.embeddings)
-            return self.vectorstore
+            self.agent_vectorstore = Chroma.from_documents(documents=all_splits, embedding=self.embeddings)
         else:
-            print("Config:", self.config.doc, self.config.url)
-            raise ValueError("No data loaded")
+            self.agent_vectorstore = Chroma("context", self.embeddings)
+        return self.agent_vectorstore
+
+    def add_data(self, filepath):
+        try:
+            source_type = DataLoaderFactory.guess_file_type(filepath)
+            loader = DataLoaderFactory.get_loader(source_type)
+            data = loader.load_data(filepath)
+            if data:
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+                all_splits = text_splitter.split_documents(data)
+                self.user_vectorstore.add_documents(all_splits)
+            else:
+                raise ValueError("No data loaded from", filepath, "maybe empty?")
+        except Exception as e:
+            print("Adding user data failed:", e)
+            raise ValueError("Adding user data failed")
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
@@ -81,6 +97,7 @@ class Chain():
         chain = (
             RunnablePassthrough.assign(
                     context=lambda input: Chain.format_docs(input["context"]),
+                    uploaded_data=lambda input: Chain.format_docs(input["uploaded_data"]),
                     history=lambda input: messages["history"],
                     today=lambda input: today,
                     agent=lambda input: agent_info
@@ -90,11 +107,12 @@ class Chain():
             | StrOutputParser()
         )
 
-        docs = self.vectorstore.similarity_search(prompt, 10)
+        agent_docs = self.agent_vectorstore.similarity_search(prompt, 10)
+        user_docs = self.user_vectorstore.similarity_search(prompt, 10)
 
         text = ""
         try:
-            text = chain.invoke({"context": docs, "question": prompt})
+            text = chain.invoke({"context": agent_docs, "uploaded_data": user_docs, "question": prompt})
         except Exception as e:
             print(e)
 

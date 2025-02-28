@@ -26,13 +26,20 @@ class DataLoaderFactory:
             raise ValueError(f"Unsupported source type: {source_type}")
 
     @staticmethod
+    def guess_file_type(file_path: str) -> str:
+        if file_path.endswith(".pdf"):
+            return 'pdf'
+        elif file_path.endswith(".txt"):
+            return 'text'
+        elif file_path.endswith(".json"):
+            return 'json'
+        else:
+            raise ValueError(f"Unsupported file type: {file_path}")
+
+    @staticmethod
     def guess_source_type(config) -> tuple[str, str]:
         if config.doc:
-            if config.doc.endswith(".pdf"):
-                return 'pdf', config.doc
-            elif config.doc.endswith(".txt"):
-                return 'text', config.doc
-            # @todo add json file loader
+            return DataLoaderFactory.guess_file_type(config.doc), config.doc
         try:
             response = requests.head(config.url)
             content_type = response.headers.get('Content-Type', '').lower()
