@@ -65,7 +65,7 @@ class DataLoaderFactory:
                 else:
                     raise ValueError(f"Unsupported content type: {content_type}")
             except Exception as e:
-                print(f"Error guessing source type for {url}, exception: {e}")
+                print(f"Error guessing source type for {url}, exception: {e}, headers: {response.headers}")
                 raise ValueError(f"Unsupported URL type: {url}")
 
     @staticmethod

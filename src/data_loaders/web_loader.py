@@ -19,15 +19,15 @@ class WebLoader:
         self.service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=self.service, options=options)
 
-    def load_data(self, url, wait_class_name="nowrap"):
+    def load_data(self, url, wait_time=10):
+        wait_class_names = ["nowrap", "content", "main"]
+
         self.driver.get(url)
 
         try:
-            WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.CLASS_NAME, wait_class_name))
-            )
+            self.driver.implicitly_wait(10)
         except Exception as e:
-            print(f"Elements did not load in time: {e}")
+            print(f"Error while waiting for elements: {e}")
             return []
 
         soup = BeautifulSoup(self.driver.page_source, "html.parser")

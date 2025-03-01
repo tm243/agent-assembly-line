@@ -11,11 +11,11 @@ class TestWebLoader(unittest.TestCase):
         mock_driver = MagicMock()
         mock_chrome.return_value = mock_driver
         mock_driver.page_source = '<html><body><span class="temperature-plus">25°C</span></body></html>'
-        
+
         # Create an instance of WebLoader and load data
         loader = WebLoader()
-        documents = loader.load_data('http://example.com', wait_class_name='temperature-plus')
-        
+        documents = loader.load_data('http://example.com')
+
         # Assertions
         self.assertEqual(len(documents), 1)
         self.assertIsInstance(documents[0], Document)

@@ -2,13 +2,13 @@
 Agent-Assembly-Line
 """
 
-import unittest
+import unittest, asyncio
 from src.chain import *
 from src.memory import *
 
 class TestChain(unittest.TestCase):
 
-    def test_question_aethelland(self):
+    async def test_question_aethelland(self):
         chain = Chain("aethelland-demo")
 
         question = "How many people live in the country? Short answer."
@@ -22,16 +22,16 @@ class TestChain(unittest.TestCase):
         text = chain.do_chain(question)
         self.assertIn("Aethelland", text, "Name of country")
 
-        text = chain.do_chain(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
+        text = await chain.do_chain(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
         self.assertIn("I cannot answer this question", text, "Name of country, without RAG")
         chain.cleanup()
 
-    def test_memory(self):
+    async def test_memory(self):
 
         chain = Chain("aethelland-demo")
         chain.memory_strategy = MemoryStrategy.SUMMARY
         question = "Are dinosaurs in the country? Short answer."
-        text = chain.do_chain(question)
+        text = await chain.do_chain(question)
         chain.save_memory()
         stored_memory = chain.load_memory()
         self.assertIn("dinosaurs", stored_memory, "Dinosaurs in country")

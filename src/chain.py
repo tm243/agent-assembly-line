@@ -84,6 +84,7 @@ class Chain():
 
     def add_url(self, url):
         try:
+            from src.data_loaders.web_loader import WebLoader
             source_type = DataLoaderFactory.guess_url_type(url)
             loader = DataLoaderFactory.get_loader(source_type)
             data = loader.load_data(url)
