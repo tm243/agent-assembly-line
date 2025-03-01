@@ -82,6 +82,23 @@ class Chain():
             print("Adding user data failed:", e)
             raise DataLoadError(f"Adding **{filename}** of type {source_type} failed: {e}")
 
+    def add_url(self, url):
+        try:
+            source_type = DataLoaderFactory.guess_url_type(url)
+            loader = DataLoaderFactory.get_loader(source_type)
+            data = loader.load_data(url)
+            if data:
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+                all_splits = text_splitter.split_documents(data)
+                self.user_vectorstore.add_documents(all_splits)
+                total_text_length = sum(len(doc.page_content) for doc in all_splits)
+                return total_text_length
+            else:
+                raise EmptyDataError(url)
+        except Exception as e:
+            print("Adding url failed:", e)
+            raise DataLoadError(f"Adding **{url}** of type {source_type} failed: {e}")
+
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
 

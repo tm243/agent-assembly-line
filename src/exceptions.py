@@ -11,5 +11,5 @@ class DataLoadError(Exception):
 class EmptyDataError(Exception):
     """Exception raised when no data is loaded from the file."""
     def __init__(self, filepath: str):
-        self.message = f"No text loaded, the file doesn't seem to contain any text."
+        self.message = f"No text loaded, the data source doesn't seem to contain any text."
         super().__init__(self.message)
