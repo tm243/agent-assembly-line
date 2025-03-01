@@ -80,7 +80,7 @@ async def question(request: RequestItem):
 
     if _detect_url(prompt):
         chain.add_url(prompt)
-        prompt = "Please summarize the content of the URL in 1 sentence"
+        prompt = "Please summarize the content of the URL in 2-3 sentences"
 
     text = await chain.do_chain(prompt, skip_rag=False)
     return { "answer" : text }
