@@ -41,7 +41,7 @@ class Chain():
         self.embeddings = OllamaEmbeddings(model=config.embeddings)
         self.agent_vectorstore = self.load_data(config)
         self.user_vectorstore = Chroma("uploaded-data",self.embeddings)
-        self.model = OllamaLLM(model=config.model_name)
+        self.model = OllamaLLM(model=config.model_name, timeout=120, ollama_keep_alive=True)
         self.summary_memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent", return_messages=True)
         self.buffer_memory = ConversationBufferMemory()
         self.memory_strategy = MemoryStrategy.SUMMARY
@@ -139,9 +139,11 @@ class Chain():
         except Exception as e:
             print(e)
 
-        self.memory_assistant.add_message(prompt, text)
-        self.buffer_memory.save_context({"question": prompt}, {"answer": text})
-        self.summary_memory.save_context({"input": prompt}, {"output": text})
+        # slow:
+        if False:
+            self.memory_assistant.add_message(prompt, text)
+            self.buffer_memory.save_context({"question": prompt}, {"answer": text})
+            self.summary_memory.save_context({"input": prompt}, {"output": text})
 
         return text
 

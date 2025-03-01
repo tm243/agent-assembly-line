@@ -82,7 +82,7 @@ def question(request: RequestItem):
         chain.add_url(prompt)
         prompt = "Please summarize the content of the URL in 1 sentence"
 
-    text = chain.do_chain(prompt)
+    text = chain.do_chain(prompt, skip_rag=False)
     return { "answer" : text }
 
 @app.get('/api/memory')
