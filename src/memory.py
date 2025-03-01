@@ -4,6 +4,7 @@ Agent Assembly Line
 
 from langchain.memory import ConversationBufferMemory
 from langchain.memory import ConversationSummaryMemory
+import asyncio
 
 class MemoryStrategy():
 
@@ -28,9 +29,10 @@ class MemoryAssistant():
         self.strategy = strategy
         self.buffer_memory = ConversationBufferMemory()
 
-    def add_message(self, prompt, answer):
+    async def add_message(self, prompt, answer):
         self.buffer_memory.save_context({"question": prompt}, {"answer": answer})
 
         if self.strategy == MemoryStrategy.SUMMARY:
             history = self.buffer_memory.load_memory_variables({})
-            self.summary_memory = self.model.invoke(self.config.memory_prompt + history["history"])
+            self.summary_memory = await asyncio.to_thread(self.model.invoke, self.config.memory_prompt + history["history"])
+            print("MemoryAssistant: Summary memory done")

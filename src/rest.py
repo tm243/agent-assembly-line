@@ -75,14 +75,14 @@ def _detect_url(prompt):
     return url_pattern.match(prompt)
 
 @app.post("/api/question")
-def question(request: RequestItem):
+async def question(request: RequestItem):
     prompt = request.prompt
 
     if _detect_url(prompt):
         chain.add_url(prompt)
         prompt = "Please summarize the content of the URL in 1 sentence"
 
-    text = chain.do_chain(prompt, skip_rag=False)
+    text = await chain.do_chain(prompt, skip_rag=False)
     return { "answer" : text }
 
 @app.get('/api/memory')

@@ -102,8 +102,15 @@ class Chain():
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
 
-    def do_chain(self, prompt, skip_rag = False):
+    timestamp = datetime.datetime.now()
+    def _log_time(self, named=""):
+        now = datetime.datetime.now()
+        timediff = (now - self.timestamp).total_seconds() * 1000
+        print(f"Time taken: {timediff:.2f} ms, {named}")
+        self.timestamp = now
 
+    async def do_chain(self, prompt, skip_rag = False):
+        self._log_time("do_chain start")
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
         messages = self.buffer_memory.load_memory_variables({})
 
@@ -116,6 +123,7 @@ class Chain():
             return response_message
         today = datetime.datetime.now().strftime("%A, %B %d, %Y %I:%M %p")
         agent_info = self.config.name
+
         # @todo: session id to separate conversations
         chain = (
             RunnablePassthrough.assign(
@@ -132,18 +140,19 @@ class Chain():
 
         agent_docs = self.agent_vectorstore.similarity_search(prompt, 10)
         user_docs = self.user_vectorstore.similarity_search(prompt, 10)
+        self._log_time("search done")
 
         text = ""
         try:
             text = chain.invoke({"context": agent_docs, "uploaded_data": user_docs, "question": prompt})
         except Exception as e:
             print(e)
+        self._log_time("chain invoked")
 
-        # slow:
-        if False:
-            self.memory_assistant.add_message(prompt, text)
-            self.buffer_memory.save_context({"question": prompt}, {"answer": text})
-            self.summary_memory.save_context({"input": prompt}, {"output": text})
+        asyncio.create_task(self.memory_assistant.add_message(prompt, text))
+        self.buffer_memory.save_context({"question": prompt}, {"answer": text})
+        # self.summary_memory.save_context({"input": prompt}, {"output": text})
+        self._log_time("Memory handling, done")
 
         return text
 
