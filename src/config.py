@@ -13,9 +13,12 @@ class Config:
    model_name = ""
    embeddings = ""
    memory_prompt = ""
+   debug = False
 
-   def __init__(self, agent_name):
-        print(f"Loading configuration for agent: {agent_name}")
+   def __init__(self, agent_name, debug = False):
+        self.debug = debug
+        if self.debug:
+            print(f"Loading configuration for agent: {agent_name}")
         self.load_conf_file(agent_name)
    
    def load_conf_file(self, agent_name):

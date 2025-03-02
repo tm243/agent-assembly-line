@@ -20,12 +20,10 @@ class WebLoader:
         self.driver = webdriver.Chrome(service=self.service, options=options)
 
     def load_data(self, url, wait_time=10):
-        wait_class_names = ["nowrap", "content", "main"]
-
         self.driver.get(url)
 
         try:
-            self.driver.implicitly_wait(10)
+            self.driver.implicitly_wait(wait_time)
         except Exception as e:
             print(f"Error while waiting for elements: {e}")
             return []

@@ -29,10 +29,12 @@ class Chain():
     user_vectorstore = None
     embeddings = None
     memory_strategy = MemoryStrategy.NO_MEMORY
+    debug_mode = False
 
-    def __init__(self, agent_name):
-        config = Config(agent_name)
+    def __init__(self, agent_name, debug = False):
+        config = Config(agent_name, debug)
         self.config = config
+        self.debug_mode = debug
 
         with open(config.prompt_template, "r") as rag_template_file:
             self.RAG_TEMPLATE = rag_template_file.read()
@@ -42,8 +44,6 @@ class Chain():
         self.agent_vectorstore = self.load_data(config)
         self.user_vectorstore = Chroma("uploaded-data",self.embeddings)
         self.model = OllamaLLM(model=config.model_name, timeout=120, ollama_keep_alive=True)
-        self.summary_memory = ConversationSummaryMemory(llm=self.model, human_prefix="User", ai_prefix="Agent", return_messages=True)
-        self.buffer_memory = ConversationBufferMemory()
         self.memory_strategy = MemoryStrategy.SUMMARY
         self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=config)
 
@@ -107,17 +107,19 @@ class Chain():
     def _log_time(self, named=""):
         now = datetime.datetime.now()
         timediff = (now - self.timestamp).total_seconds() * 1000
-        print(f"Time taken: {timediff:.2f} ms, {named}")
+        if self.debug_mode:
+            print(f"Time taken: {timediff:.2f} ms, {named}")
         self.timestamp = now
 
     async def do_chain(self, prompt, skip_rag = False):
         self._log_time("do_chain start")
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
-        messages = self.buffer_memory.load_memory_variables({})
+        # messages = self.memory_assistant.load_memory()
+        messages = {'history':""}
 
         """ test without rag, to see the difference """
         if skip_rag:
-            response_message = self.model.invoke(prompt)
+            response_message = await self.model.ainvoke(prompt)
 #            print("Without RAG:")
 #            print(response_message)
 #            print("---")
@@ -145,27 +147,15 @@ class Chain():
 
         text = ""
         try:
-            text = chain.invoke({"context": agent_docs, "uploaded_data": user_docs, "question": prompt})
+            text = await chain.ainvoke({"context": agent_docs, "uploaded_data": user_docs, "question": prompt})
         except Exception as e:
             print(e)
         self._log_time("chain invoked")
 
-        asyncio.create_task(self.memory_assistant.add_message(prompt, text))
-        self.buffer_memory.save_context({"question": prompt}, {"answer": text})
-        # self.summary_memory.save_context({"input": prompt}, {"output": text})
+        await self.memory_assistant.add_message(prompt, text)
         self._log_time("Memory handling, done")
 
         return text
-
-    def save_memory(self):
-        with open("memory_summary.txt", "w") as f:
-            sm = self.summary_memory.load_memory_variables({})["history"]
-            for s in sm:
-                f.write(s.content)
-
-    def load_memory(self):
-        with open("memory_summary.txt", "r") as f:
-            return f.read()
 
     def get_summary_memory(self):
         return self.memory_assistant.summary_memory

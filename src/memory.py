@@ -2,8 +2,15 @@
 Agent Assembly Line
 """
 
-from langchain.memory import ConversationBufferMemory
-from langchain.memory import ConversationSummaryMemory
+# @todo migrate to trim_messages()
+# https://python.langchain.com/docs/versions/migrating_memory/conversation_buffer_window_memory/
+
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="langchain")
+with warnings.catch_warnings():
+    from langchain.memory import ConversationSummaryMemory
+    from langchain.memory import ConversationBufferMemory
+
 import asyncio
 
 class MemoryStrategy():
@@ -12,7 +19,6 @@ class MemoryStrategy():
     SUMMARY   = 1
     HISTORY   = 2
 
-    buffer_memory = ConversationBufferMemory()
     model = None
     config = None
     summary = None
@@ -21,13 +27,12 @@ class MemoryAssistant():
 
     strategy = MemoryStrategy.NO_MEMORY
     summary_memory = ""
-    buffer_memory = None
+    buffer_memory = ConversationBufferMemory()
 
     def __init__(self, strategy=MemoryStrategy.NO_MEMORY, model=None, config=None):
         self.config = config
         self.model = model
         self.strategy = strategy
-        self.buffer_memory = ConversationBufferMemory()
 
     async def add_message(self, prompt, answer):
         self.buffer_memory.save_context({"question": prompt}, {"answer": answer})
