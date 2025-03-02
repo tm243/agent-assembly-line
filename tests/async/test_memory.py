@@ -11,8 +11,18 @@ class StubModel():
 class StubConfig():
     memory_prompt = "memory-prompt"
     debug = False
+    def __init__(self, memory_path="default_test_auto_save.json"):
+        self.memory_path = memory_path
 
 class TestMemory(aiounittest.AsyncTestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        auto_save_path = StubConfig().memory_path
+        if os.path.exists(auto_save_path):
+            os.remove(auto_save_path)
 
     async def test_add_message(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=StubConfig())
@@ -109,6 +119,23 @@ class TestMemory(aiounittest.AsyncTestCase):
 
         self.assertIsInstance(invalid_type_message, BaseMessage)
         self.assertEqual(invalid_type_message.content, 'Invalid type')
+
+    async def test_auto_save(self):
+        auto_save_path = "123-test_auto_save.json"
+        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=StubConfig(memory_path=auto_save_path))
+        memory.auto_save_interval = 1
+
+        await memory.add_message("Auto-save test", "This should be saved automatically")
+
+        # Wait for the auto-save to trigger
+        await asyncio.sleep(2)
+
+        memory.load_messages(auto_save_path)
+        self.assertEqual(len(memory.messages), 2)
+        self.assertEqual(memory.messages[0].content, "Auto-save test")
+        self.assertEqual(memory.messages[1].content, "This should be saved automatically")
+
+        os.remove(auto_save_path)
 
 if __name__ == '__main__':
     aiounittest.main()

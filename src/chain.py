@@ -46,6 +46,7 @@ class Chain():
         self.model = OllamaLLM(model=config.model_name, timeout=120, ollama_keep_alive=True)
         self.memory_strategy = MemoryStrategy.SUMMARY
         self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=config)
+        self.memory_assistant.load_messages(self.config.memory_path)
 
     def cleanup(self):
         self.embeddings._client._client.close()

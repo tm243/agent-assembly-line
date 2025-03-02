@@ -111,3 +111,12 @@ def upload_file(file: UploadFile = File(...)):
         print("File upload failed:", e)
         return JSONResponse(content={"filename": file.filename, "message": f'File "{file.filename}" not added. {e}'}, status_code=500)
     return JSONResponse(content={"filename": file.filename, "message": f'File "{file.filename}" added successfully with {total_text_length} characters of text.'})
+
+@app.get("/api/load-history")
+def load_history():
+    try:
+        messages = chain.memory_assistant.messages
+        if messages:
+            return JSONResponse(content={"messages": messages}, status_code=200)
+    except Exception as e:
+        return JSONResponse(content={"message": f"Failed to load history. {e}"}, status_code=500)
