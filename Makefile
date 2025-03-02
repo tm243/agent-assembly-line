@@ -15,7 +15,8 @@ test-loaders:
 	python -m unittest tests/test_data_loaders/*
 
 test-verbose:
-	python -m unittest discover -s tests -v
+	python -m unittest discover -s tests/async -v
+	python -m unittest discover -s tests/sync -v
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
