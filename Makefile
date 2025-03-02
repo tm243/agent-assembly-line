@@ -1,8 +1,15 @@
 run:
 	uvicorn src.rest:app --reload
 
+test-async:
+	python -m unittest discover -s tests/async
+
+test-sync:
+	python -m unittest discover -s tests/sync
+
 test:
-	python -m unittest discover -s tests
+	$(MAKE) test-sync
+	$(MAKE) test-async
 
 test-loaders:
 	python -m unittest tests/test_data_loaders/*

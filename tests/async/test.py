@@ -40,7 +40,7 @@ class TestChain(aiounittest.AsyncTestCase):
         question = "Are dinosaurs in the country? Short answer."
 
         # temp. disabled:
-        # text = await chain.do_chain(question)
+        text = await chain.do_chain(question)
         # chain.save_memory()
         # stored_memory = chain.load_memory()
         # self.assertIn("dinosaurs", stored_memory, "Dinosaurs in country")
