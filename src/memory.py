@@ -40,8 +40,9 @@ class MemoryAssistant():
         self.auto_save_task.start()
 
     async def add_message(self, prompt, answer):
-        self.messages.append(HumanMessage(content=prompt))
-        self.messages.append(AIMessage(content=answer))
+        timestamp = time.time()
+        self.messages.append(HumanMessage(content=prompt, id=f"human-{timestamp}"))
+        self.messages.append(AIMessage(content=answer, id=f"ai-{timestamp}"))
         self.trim_messages_buffer()
         self.message_count_since_last_save += 1
 
@@ -75,8 +76,13 @@ class MemoryAssistant():
                 else:
                     existing_messages = []
 
-                # Append new messages to the existing messages
-                all_messages = existing_messages + [message.__dict__ for message in self.messages]
+                # Convert existing messages to a set of IDs for quick lookup
+                existing_message_ids = {msg['id'] for msg in existing_messages}
+
+                # Append new messages to the existing messages, avoiding duplicates
+                new_messages = [message.__dict__ for message in self.messages if message.__dict__['id'] not in existing_message_ids]
+
+                all_messages = existing_messages + new_messages
 
                 with open(file_path, 'w') as file:
                     json.dump(all_messages, file)
@@ -99,7 +105,7 @@ class MemoryAssistant():
                 if self.config.debug:
                     print(f"Messages loaded from {file_path}")
         except Exception as e:
-            print("Error loading messages: ", e)
+            print("Error loading messages: ", e, file_path)
 
     def _message_from_dict(self, data):
         if not data or 'type' not in data or 'content' not in data:
@@ -107,13 +113,13 @@ class MemoryAssistant():
         if data['content'] is None:
             return None
         if data['type'] == 'human':
-            return HumanMessage(content=data['content'])
+            return HumanMessage(content=data['content'], id=data.get('id'))
         elif data['type'] == 'ai':
-            return AIMessage(content=data['content'])
+            return AIMessage(content=data['content'], id=data.get('id'))
         elif data['type'] == 'system':
-            return SystemMessage(content=data['content'])
+            return SystemMessage(content=data['content'], id=data.get('id'))
         else:
-            return BaseMessage(type='base', content=data['content'])
+            return BaseMessage(type='base', content=data['content'], id=data.get('id'))
 
     def _auto_save_periodically(self):
         while True:

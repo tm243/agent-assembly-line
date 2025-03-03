@@ -22,17 +22,7 @@ from langchain_ollama.llms import OllamaLLM
 from langchain_core.output_parsers import StrOutputParser
 
 class Chain:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(Chain, cls).__new__(cls)
-            cls._instance.__initialized = False
-        return cls._instance
-
     def __init__(self, agent_name, debug = False):
-        if self.__initialized:
-            return
         self.agent_name = agent_name
         config = Config(agent_name, debug)
         self.config = config
@@ -49,13 +39,6 @@ class Chain:
         self.memory_strategy = MemoryStrategy.SUMMARY
         self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=config)
         self.memory_assistant.load_messages(self.config.memory_path)
-        self.__initialized = True
-
-    @classmethod
-    def get_instance(cls, agent_name="chat-demo"):
-        if cls._instance is None:
-            cls._instance = Chain(agent_name)
-        return cls._instance
 
     def cleanup(self):
         self.embeddings._client._client.close()

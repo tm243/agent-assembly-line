@@ -8,8 +8,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from src.chain import Chain
-from src.memory import MemoryAssistant, MemoryStrategy
+from src.agent_manager import AgentManager
 from src.exceptions import DataLoadError, EmptyDataError
 
 from langchain_core.messages import (
@@ -19,7 +18,7 @@ from langchain_core.messages import (
 )
 
 app = FastAPI()
-chain = Chain.get_instance()
+agent_manager = AgentManager()
 
 class RequestItem(BaseModel):
     prompt: str
@@ -59,18 +58,17 @@ def data_sources():
 
 @app.get('/api/info')
 def info():
+    agent = agent_manager.get_agent()
     return {
-        "name": chain.config.name,
-        "description": chain.config.description,
-        "LLM": chain.config.model_name,
-        "doc": chain.config.doc
+        "name": agent.config.name,
+        "description": agent.config.description,
+        "LLM": agent.config.model_name,
+        "doc": agent.config.doc
     }
 
 @app.post("/api/select-agent")
 def select_agent(request: AgentSelectItem):
-    global chain
-    agent = request.agent
-    chain = Chain.get_instance(agent)
+    agent_manager.select_agent(request.agent)
     return {}
 
 def _detect_url(prompt):
@@ -82,23 +80,26 @@ def _detect_url(prompt):
 
 @app.post("/api/question")
 async def question(request: RequestItem):
+    agent = agent_manager.get_agent()
     prompt = request.prompt
 
     if _detect_url(prompt):
-        chain.add_url(prompt)
+        agent.add_url(prompt)
         prompt = "Please summarize the content of the URL in 2-3 sentences"
 
-    text = await chain.do_chain(prompt, skip_rag=False)
+    text = await agent.do_chain(prompt, skip_rag=False)
     return { "answer" : text }
 
 @app.get('/api/memory')
 def memory():
+    agent = agent_manager.get_agent()
     return {
-        "memory": chain.get_summary_memory()
+        "memory": agent.get_summary_memory()
     }
 
 @app.post("/api/upload-file")
 def upload_file(file: UploadFile = File(...)):
+    agent = agent_manager.get_agent()
     try:
         upload_directory = "uploads"
         os.makedirs(upload_directory, exist_ok=True)
@@ -107,7 +108,7 @@ def upload_file(file: UploadFile = File(...)):
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        total_text_length = chain.add_data(upload_directory, file.filename)
+        total_text_length = agent.add_data(upload_directory, file.filename)
 
     except EmptyDataError as e:
         return JSONResponse(content={"filename": file.filename, "message": e.message}, status_code=400)
@@ -120,8 +121,9 @@ def upload_file(file: UploadFile = File(...)):
 
 @app.get("/api/load-history")
 def load_history():
+    agent = agent_manager.get_agent()
     try:
-        messages = chain.memory_assistant.messages
+        messages = agent.memory_assistant.messages
         messages_dict = []
         for message in messages:
             message_dict = message.__dict__

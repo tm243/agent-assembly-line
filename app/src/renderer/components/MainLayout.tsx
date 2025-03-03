@@ -87,7 +87,7 @@ const MainLayout = () => {
       setInputValue('');
       const answer = await sendMessage(userMessage);
       const llmMessage: Message = { sender: 'llm', text: answer };
-      setMessages((prevMessages) => [...prevMessages, userMessage, llmMessage]);
+      setMessages((prevMessages) => [...prevMessages, llmMessage]);
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {

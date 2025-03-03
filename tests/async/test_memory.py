@@ -11,21 +11,28 @@ class StubModel():
 class StubConfig():
     memory_prompt = "memory-prompt"
     debug = False
-    def __init__(self, memory_path="default_test_auto_save.json"):
-        self.memory_path = memory_path
+    def __init__(self, memory_path=None):
+        if memory_path is None:
+            self.temp_file = tempfile.NamedTemporaryFile(delete=False)
+            self.memory_path = self.temp_file.name
+        else:
+            self.memory_path = memory_path
+
+    def cleanup(self):
+        if hasattr(self, 'temp_file'):
+            self.temp_file.close()
+            os.remove(self.memory_path)
 
 class TestMemory(aiounittest.AsyncTestCase):
 
     def setUp(self):
-        pass
+        self.config = StubConfig()
 
     def tearDown(self):
-        auto_save_path = StubConfig().memory_path
-        if os.path.exists(auto_save_path):
-            os.remove(auto_save_path)
+        self.config.cleanup()
 
     async def test_add_message(self):
-        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=StubConfig())
+        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
 
         await memory.add_message("What day is today?", "Today is Tuesday")
 
@@ -34,26 +41,20 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertEqual(memory.messages[1].content, "Today is Tuesday")
 
     async def test_save_messages(self):
-        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=StubConfig())
+        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
 
         await memory.add_message("message", "response")
 
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_file_path = temp_file.name
-
-        try:
-            memory.save_messages(temp_file_path)
-            memory.messages = []
-            memory.load_messages(temp_file_path)
-            self.assertEqual(len(memory.messages), 2)
-            self.assertEqual(memory.messages[0].content, "message")
-            self.assertEqual(memory.messages[1].content, "response")
-        finally:
-            os.remove(temp_file_path)
+        memory.save_messages(self.config.memory_path)
+        memory.messages = []
+        memory.load_messages(self.config.memory_path)
+        self.assertEqual(len(memory.messages), 2)
+        self.assertEqual(memory.messages[0].content, "message")
+        self.assertEqual(memory.messages[1].content, "response")
 
     async def test_trim_messages(self):
-        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=StubConfig())
-        memory.max_messages = 6
+        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
+        memory.max_messages_in_buffer = 6
 
         for i in range(60):
             await memory.add_message(f"Question {i}", f"Answer {i}")
@@ -63,8 +64,8 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertEqual(memory.messages[1].content, "Answer 57")
 
     def test_trim_messages_buffer(self):
-        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=StubConfig())
-        memory.max_messages = 6
+        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
+        memory.max_messages_in_buffer = 6
 
         # more than 6 messages, trim_messages will only leave 7,8,9 in the list
         for i in range(10):
@@ -78,7 +79,7 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertEqual(memory.messages[1].content, "Answer 7")
 
     def test_message_from_dict(self):
-        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=StubConfig())
+        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
 
         human_message_dict = {'type': 'human', 'content': 'Hello'}
         ai_message_dict = {'type': 'ai', 'content': 'Hi there!'}
@@ -103,7 +104,7 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertEqual(base_message.content, 'Base message')
 
     def test_message_from_dict_edge_cases(self):
-        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=StubConfig())
+        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
 
         empty_message_dict = {'type': 'human', 'content': ''}
         none_message_dict = {'type': 'ai', 'content': None}
@@ -122,8 +123,7 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertEqual(invalid_type_message.content, 'Invalid type')
 
     async def test_auto_save(self):
-        auto_save_path = "123-test_auto_save.json"
-        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=StubConfig(memory_path=auto_save_path))
+        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
         memory.auto_save_interval = 1
 
         await memory.add_message("Auto-save test", "This should be saved automatically")
@@ -131,12 +131,10 @@ class TestMemory(aiounittest.AsyncTestCase):
         # Wait for the auto-save to trigger
         await asyncio.sleep(2)
 
-        memory.load_messages(auto_save_path)
+        memory.load_messages(self.config.memory_path)
         self.assertEqual(len(memory.messages), 2)
         self.assertEqual(memory.messages[0].content, "Auto-save test")
         self.assertEqual(memory.messages[1].content, "This should be saved automatically")
-
-        os.remove(auto_save_path)
 
 if __name__ == '__main__':
     aiounittest.main()
