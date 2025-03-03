@@ -115,8 +115,7 @@ class Chain():
     async def do_chain(self, prompt, skip_rag = False):
         self._log_time("do_chain start")
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
-        # messages = self.memory_assistant.load_memory()
-        messages = {'history':""}
+        history = "\n".join([message.content for message in self.memory_assistant.messages])
 
         """ test without rag, to see the difference """
         if skip_rag:
@@ -133,7 +132,7 @@ class Chain():
             RunnablePassthrough.assign(
                     context=lambda input: Chain.format_docs(input["context"]),
                     uploaded_data=lambda input: Chain.format_docs(input["uploaded_data"]),
-                    history=lambda input: messages["history"],
+                    history=lambda input: history,
                     today=lambda input: today,
                     agent=lambda input: agent_info
             )
