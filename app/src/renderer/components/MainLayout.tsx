@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, MenuItem, Select, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
 import Chat from './Chat';
 import PulsingDot from './PulsingDot';
-import { sendMessage, Message, fetchInfo, selectAgent, fetchDataSources } from '../services/ApiService';
+import { sendMessage, Message, fetchInfo, selectAgent, fetchDataSources, fetchHistory } from '../services/ApiService';
 import MemoryDisplay from './MemoryDisplay';
 import FileUploadButton from './FileUploadButton';
 
@@ -35,6 +35,7 @@ const MainLayout = () => {
           setSelectedDataSource(defaultAgent);
           await selectAgent(defaultAgent);
           loadInfo();
+          loadHistory();
         } catch (error) {
           console.error('Failed to select agent:', error);
         }
@@ -62,6 +63,15 @@ const MainLayout = () => {
         }
       };
 
+    const loadHistory = async () => {
+      try {
+        const history = await fetchHistory();
+        setMessages(history);
+      } catch (error) {
+        console.error('Failed to load history:', error);
+      }
+    };
+
     loadDefaultAgent();
     loadAvailableDataSources();
   }, []);
@@ -77,7 +87,7 @@ const MainLayout = () => {
       setInputValue('');
       const answer = await sendMessage(userMessage);
       const llmMessage: Message = { sender: 'llm', text: answer };
-      setMessages((prevMessages) => [...prevMessages, llmMessage]);
+      setMessages((prevMessages) => [...prevMessages, userMessage, llmMessage]);
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
@@ -94,6 +104,8 @@ const MainLayout = () => {
       setName(fetchedInfo.name);
       setDescription(fetchedInfo.description);
       setDoc(fetchedInfo.doc);
+      const history = await fetchHistory();
+      setMessages(history);
     } catch (error) {
       console.error('Failed to select agent:', error);
     }

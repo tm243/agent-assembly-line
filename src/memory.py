@@ -23,8 +23,8 @@ class MemoryStrategy():
 class MemoryAssistant():
     strategy = MemoryStrategy.NO_MEMORY
     summary_memory = ""
-    max_messages = 50
-    auto_save_interval = 300  # Auto-save every 5 minutes
+    max_messages_in_buffer = 50
+    auto_save_interval_sec = 30
     auto_save_message_count = 10  # Auto-save every 10 messages
 
     def __init__(self, strategy=MemoryStrategy.NO_MEMORY, model=None, config=None):
@@ -59,7 +59,7 @@ class MemoryAssistant():
         self.messages = trim_messages(
             self.messages,
             token_counter=len,
-            max_tokens=self.max_messages,
+            max_tokens=self.max_messages_in_buffer,
             strategy="last",
             start_on="human",
             include_system=True,
@@ -67,15 +67,39 @@ class MemoryAssistant():
         )
 
     def save_messages(self, file_path):
-        if file_path:
-            with open(file_path, 'w') as file:
-                json.dump([message.__dict__ for message in self.messages], file)
+        try:
+            if file_path:
+                if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+                    with open(file_path, 'r') as file:
+                        existing_messages = json.load(file)
+                else:
+                    existing_messages = []
+
+                # Append new messages to the existing messages
+                all_messages = existing_messages + [message.__dict__ for message in self.messages]
+
+                with open(file_path, 'w') as file:
+                    json.dump(all_messages, file)
+                if self.config.debug:
+                    print(f"{len(all_messages)} messages saved to {file_path}")
+        except Exception as e:
+            print("Error saving messages: ", e)
 
     def load_messages(self, file_path):
-        if os.path.exists(self.auto_save_path):
-            with open(file_path, 'r') as file:
-                messages_data = json.load(file)
-                self.messages = [self._message_from_dict(data) for data in messages_data]
+        try:
+            if os.path.exists(file_path):
+                if self.config.debug:
+                    print("Loading messages from", file_path, os.path.getsize(file_path))
+                if os.path.getsize(file_path) == 0:
+                    print("File is empty, no messages to load.")
+                    return
+                with open(file_path, 'r') as file:
+                    messages_data = json.load(file)
+                    self.messages = [self._message_from_dict(data) for data in messages_data]
+                if self.config.debug:
+                    print(f"Messages loaded from {file_path}")
+        except Exception as e:
+            print("Error loading messages: ", e)
 
     def _message_from_dict(self, data):
         if not data or 'type' not in data or 'content' not in data:
@@ -94,7 +118,7 @@ class MemoryAssistant():
     def _auto_save_periodically(self):
         while True:
             asyncio.run(self._auto_save())
-            time.sleep(self.auto_save_interval)
+            time.sleep(self.auto_save_interval_sec)
 
     async def _auto_save(self):
         self.save_messages(self.auto_save_path)

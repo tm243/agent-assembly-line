@@ -20,3 +20,9 @@ journalctl -u agent-assembly-line.service
 # Test
 
 python -m unittest tests/test.py
+
+just one test:
+python -m unitpython -m unittest tests.async.test_memory.TestMemory.test_save_messages
+
+all tests:
+make test

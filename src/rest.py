@@ -8,12 +8,18 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from src.chain import *
-from src.memory import *
+from src.chain import Chain
+from src.memory import MemoryAssistant, MemoryStrategy
 from src.exceptions import DataLoadError, EmptyDataError
 
+from langchain_core.messages import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage
+)
+
 app = FastAPI()
-chain = Chain("chat-demo")
+chain = Chain.get_instance()
 
 class RequestItem(BaseModel):
     prompt: str
@@ -64,7 +70,7 @@ def info():
 def select_agent(request: AgentSelectItem):
     global chain
     agent = request.agent
-    chain = Chain(agent)
+    chain = Chain.get_instance(agent)
     return {}
 
 def _detect_url(prompt):
@@ -116,7 +122,15 @@ def upload_file(file: UploadFile = File(...)):
 def load_history():
     try:
         messages = chain.memory_assistant.messages
-        if messages:
-            return JSONResponse(content={"messages": messages}, status_code=200)
+        messages_dict = []
+        for message in messages:
+            message_dict = message.__dict__
+            if isinstance(message, HumanMessage):
+                message_dict['sender'] = 'user'
+            elif isinstance(message, AIMessage):
+                message_dict['sender'] = 'llm'
+            message_dict['text'] = message.content
+            messages_dict.append(message_dict)
+        return JSONResponse(content={"messages": messages_dict}, status_code=200)
     except Exception as e:
         return JSONResponse(content={"message": f"Failed to load history. {e}"}, status_code=500)

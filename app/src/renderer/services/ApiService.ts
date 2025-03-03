@@ -83,6 +83,15 @@ export const fetchMemory = async (): Promise<string> => {
   return data.memory;
 };
 
+export const fetchHistory = async (): Promise<Message[]> => {
+  const response = await fetch(`${API_URL}/load-history`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch history');
+  }
+  const data = await response.json();
+  return data.messages || [];
+};
+
 export const uploadFile = async (file: File): Promise<Message> => {
   const formData = new FormData();
   formData.append('file', file);
@@ -98,12 +107,10 @@ export const uploadFile = async (file: File): Promise<Message> => {
       text: response.data.message || `File "${file.name}" uploaded successfully.`,
     };
   } catch (error) {
+    console.error('Error uploading file:', error);
     return {
       sender: 'system',
       text: (error as any).response?.data?.message || `File "${file.name}" not added. Error: ${(error as any).message}`,
     };
-
-    console.error('Error uploading file:', error);
-    throw error;
   }
 };

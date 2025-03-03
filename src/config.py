@@ -54,8 +54,8 @@ class Config:
 
     @property
     def memory_path(self):
-        user_memory_path = os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{self.name}/memory.json")
-        local_memory_path = f"datasource/{self.name}/memory.json"
+        user_memory_path = os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{self.name}/history.json")
+        local_memory_path = f"datasource/{self.name}/history.json"
 
         if os.path.exists(user_memory_path):
             return user_memory_path

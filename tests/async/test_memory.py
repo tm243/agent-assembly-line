@@ -43,6 +43,7 @@ class TestMemory(aiounittest.AsyncTestCase):
 
         try:
             memory.save_messages(temp_file_path)
+            memory.messages = []
             memory.load_messages(temp_file_path)
             self.assertEqual(len(memory.messages), 2)
             self.assertEqual(memory.messages[0].content, "message")
