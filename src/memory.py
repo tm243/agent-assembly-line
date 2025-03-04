@@ -96,8 +96,9 @@ class MemoryAssistant():
             if os.path.exists(file_path):
                 if self.config.debug:
                     print("Loading messages from", file_path, os.path.getsize(file_path))
-                if os.path.getsize(file_path) == 0:
-                    print("File is empty, no messages to load.")
+                if os.path.getsize(file_path) < 2:
+                    if self.config.debug:
+                        print("File is empty, no messages to load.")
                     return
                 with open(file_path, 'r') as file:
                     messages_data = json.load(file)

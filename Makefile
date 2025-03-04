@@ -8,8 +8,7 @@ test-sync:
 	python -m unittest discover -s tests/sync
 
 test:
-	$(MAKE) test-sync
-	$(MAKE) test-async
+	python -m unittest discover -s tests/
 
 test-loaders:
 	python -m unittest tests/test_data_loaders/*

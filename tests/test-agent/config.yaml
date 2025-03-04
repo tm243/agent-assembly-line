@@ -1,0 +1,10 @@
+name: "Test Agent"
+description: "This is a test agent for unit tests."
+data:
+  file: "test_data.txt"
+prompt:
+  template: "rag_template.txt"
+llm:
+  model-name: "codegemma:latest"
+  embeddings: "nomic-embed-text"
+memory-prompt: "test-memory-prompt"

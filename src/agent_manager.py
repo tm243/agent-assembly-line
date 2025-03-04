@@ -4,8 +4,8 @@ Agent-Assembly-Line
 from src.chain import Chain
 
 class AgentManager:
-    def __init__(self):
-        self.current_agent = Chain("chat-demo")
+    def __init__(self, agent="chat-demo"):
+        self.current_agent = Chain(agent)
 
     def select_agent(self, agent_name, debug=False):
         if self.current_agent is None or self.current_agent.agent_name != agent_name:

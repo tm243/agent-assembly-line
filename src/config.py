@@ -22,8 +22,8 @@ class Config:
         self.load_conf_file(agent_name)
 
     def load_conf_file(self, agent_name):
-        user_datasource_path = os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{agent_name}")
-        local_datasource_path = f"datasource/{agent_name}"
+        user_datasource_path = os.getenv('USER_DATASOURCE_PATH', os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{agent_name}"))
+        local_datasource_path = os.getenv('LOCAL_DATASOURCE_PATH', f"datasource/{agent_name}")
 
         if os.path.exists(user_datasource_path):
             datasource_path = user_datasource_path
@@ -54,8 +54,8 @@ class Config:
 
     @property
     def memory_path(self):
-        user_memory_path = os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{self.name}/history.json")
-        local_memory_path = f"datasource/{self.name}/history.json"
+        user_memory_path = os.getenv('USER_MEMORY_PATH', os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{self.name}/history.json"))
+        local_memory_path = os.getenv('LOCAL_MEMORY_PATH', f"datasource/{self.name}/history.json")
 
         if os.path.exists(user_memory_path):
             return user_memory_path
