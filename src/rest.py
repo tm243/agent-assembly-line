@@ -19,6 +19,7 @@ from langchain_core.messages import (
 
 app = FastAPI()
 agent_manager = AgentManager()
+agent_manager.select_agent("chat-demo", debug=True)
 
 class RequestItem(BaseModel):
     prompt: str
@@ -87,7 +88,7 @@ async def question(request: RequestItem):
         agent.add_url(prompt)
         prompt = "Please summarize the content of the URL in 2-3 sentences"
 
-    text = await agent.do_chain(prompt, skip_rag=False)
+    text = agent.do_chain(prompt, skip_rag=False)
     return { "answer" : text }
 
 @app.get('/api/memory')

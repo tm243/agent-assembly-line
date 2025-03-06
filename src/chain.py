@@ -137,13 +137,19 @@ class Chain:
 
         max_docs = len(self.agent_vectorstore.get()['documents']) if self.agent_vectorstore.get() else 10
         max_docs = 10 if max_docs > 10 else max_docs
+        max_docs = max_docs if max_docs > 0 else 1
         agent_docs = self.agent_vectorstore.similarity_search(prompt, max_docs)
 
         max_docs = len(self.user_vectorstore.get()['documents']) if self.user_vectorstore.get() else 10
         max_docs = 10 if max_docs > 10 else max_docs
+        max_docs = max_docs if max_docs > 0 else 1
         user_docs = self.user_vectorstore.similarity_search(prompt, 10)
 
         self._log_time("search done")
+        if self.config.debug:
+            print(f"Agent docs: {len(agent_docs)}")
+            print(f"User docs: {len(user_docs)}")
+            print(f"History: {len(history)}")
 
         text = ""
         try:

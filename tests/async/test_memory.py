@@ -7,6 +7,8 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, Base
 class StubModel():
     def invoke(self, prompt):
         self.prompt = prompt
+    async def ainvoke(self, prompt):
+        self.prompt = prompt
 
 class StubConfig():
     memory_prompt = "memory-prompt"

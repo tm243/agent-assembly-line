@@ -23,7 +23,7 @@ class MemoryStrategy():
 class MemoryAssistant():
     strategy = MemoryStrategy.NO_MEMORY
     summary_memory = ""
-    max_messages_in_buffer = 50
+    max_messages_in_buffer = 10 # affects response time of LLM
     auto_save_interval_sec = 30
     auto_save_message_count = 10  # Auto-save every 10 messages
 
@@ -53,9 +53,14 @@ class MemoryAssistant():
 
         if self.strategy == MemoryStrategy.SUMMARY:
             history = "\n".join([message.content for message in self.messages])
-            self.summary_memory = self.model.invoke(self.config.memory_prompt + history)
+            asyncio.create_task(self._invoke_model(history))
             if self.config.debug:
-                print("MemoryAssistant: Summary memory done")
+                print("MemoryAssistant: Summary memory task created")
+
+    async def _invoke_model(self, history):
+        self.summary_memory = await self.model.ainvoke(self.config.memory_prompt + history)
+        if self.config.debug:
+            print("MemoryAssistant: Summary memory done")
 
     def trim_messages_buffer(self):
         self.messages = trim_messages(
