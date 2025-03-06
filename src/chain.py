@@ -40,6 +40,7 @@ class Chain:
 
     async def cleanup(self):
         await self.memory_assistant.stopSaving()
+        self.memory_assistant.cleanup()
         self.config.cleanup()
         self.model._client._client.close()
         self.embeddings._client._client.close()
@@ -76,6 +77,8 @@ class Chain:
             raise DataLoadError(f"Adding **{filename}** of type {source_type} failed: {e}")
 
     def add_url(self, url):
+        if self.config.debug:
+            print(f"Adding URL: {url}")
         try:
             from src.data_loaders.web_loader import WebLoader
             source_type = DataLoaderFactory.guess_url_type(url)

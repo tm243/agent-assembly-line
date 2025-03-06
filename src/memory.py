@@ -40,6 +40,11 @@ class MemoryAssistant():
         self.auto_save_task.daemon = True
         self.auto_save_task.start()
 
+    def cleanup(self):
+        self.summary_memory = ""
+        self.messages = []
+        self.strategy = MemoryStrategy.NO_MEMORY
+
     def add_message(self, prompt, answer):
         timestamp = time.time()
         self.messages.append(HumanMessage(content=prompt, id=f"human-{timestamp}"))

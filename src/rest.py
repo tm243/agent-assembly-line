@@ -64,11 +64,13 @@ def info():
         "name": agent.config.name,
         "description": agent.config.description,
         "LLM": agent.config.model_name,
-        "doc": agent.config.doc
+        "doc": agent.config.doc if agent.config.doc else agent.config.url,
+        "memory": agent.memory_strategy,
     }
 
 @app.post("/api/select-agent")
-def select_agent(request: AgentSelectItem):
+async def select_agent(request: AgentSelectItem):
+    await agent_manager.get_agent().cleanup()
     agent_manager.select_agent(request.agent)
     return {}
 
