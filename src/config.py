@@ -68,3 +68,15 @@ class Config:
                 file.write('[]')
             return user_memory_path
 
+    def cleanup(self):
+        self.doc = None
+        self.url = None
+        self.wait_class_name = None
+        self.prompt_template = None
+        self.model_name = None
+        self.embeddings = None
+        self.memory_prompt = None
+        self.debug = None
+        self.name = None
+        self.description = None
+

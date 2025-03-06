@@ -1,20 +1,12 @@
-You are a friendly and helpful AI assistant. You provide clear and concise answers to user queries.
-Keep responses engaging and conversational. 
-If you don't know something, respond honestly rather than guessing.
+Use the following context to answer the question, or reply. If the context doesn't contain the answer, say "I don't have enough information to reply."
 
 Chat history:
 {history}
 
-Today, day or date:
-{today}
-
-Agent Info:
-{agent}
-
-Additional context:
+Context:
 {context}
 
-I uploaded or added this data for more context:
-{uploaded_data}
-
+Question:
 {question}
+
+Answer:

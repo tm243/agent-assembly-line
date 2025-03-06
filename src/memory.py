@@ -35,11 +35,12 @@ class MemoryAssistant():
         self.auto_save_path = config.memory_path
         self.message_count_since_last_save = 0
 
+        self.stop_event = threading.Event()
         self.auto_save_task = threading.Thread(target=self._auto_save_periodically)
         self.auto_save_task.daemon = True
         self.auto_save_task.start()
 
-    async def add_message(self, prompt, answer):
+    def add_message(self, prompt, answer):
         timestamp = time.time()
         self.messages.append(HumanMessage(content=prompt, id=f"human-{timestamp}"))
         self.messages.append(AIMessage(content=answer, id=f"ai-{timestamp}"))
@@ -52,7 +53,7 @@ class MemoryAssistant():
 
         if self.strategy == MemoryStrategy.SUMMARY:
             history = "\n".join([message.content for message in self.messages])
-            self.summary_memory = await asyncio.to_thread(self.model.invoke, self.config.memory_prompt + history)
+            self.summary_memory = self.model.invoke(self.config.memory_prompt + history)
             if self.config.debug:
                 print("MemoryAssistant: Summary memory done")
 
@@ -123,9 +124,25 @@ class MemoryAssistant():
             return BaseMessage(type='base', content=data['content'], id=data.get('id'))
 
     def _auto_save_periodically(self):
-        while True:
-            asyncio.run(self._auto_save())
-            time.sleep(self.auto_save_interval_sec)
+        sleep_interval = 1  # Check the stop event every 1 second
+        total_sleep_time = 0
+
+        while not self.stop_event.is_set():
+            if total_sleep_time >= self.auto_save_interval_sec:
+                asyncio.run(self._auto_save())
+                total_sleep_time = 0
+            else:
+                time.sleep(sleep_interval)
+                total_sleep_time += sleep_interval
 
     async def _auto_save(self):
         self.save_messages(self.auto_save_path)
+
+    async def stopSaving(self):
+        self.stop_event.set()
+        self.auto_save_task.join()
+        await asyncio.to_thread(self.save_messages, self.auto_save_path)
+        self.messages = []
+        self.summary_memory = ""
+        if self.config.debug:
+            print("MemoryAssistant: Messages saved and cleared")

@@ -34,16 +34,18 @@ class TestMemory(aiounittest.AsyncTestCase):
     async def test_add_message(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
 
-        await memory.add_message("What day is today?", "Today is Tuesday")
+        memory.add_message("What day is today?", "Today is Tuesday")
 
         self.assertEqual(len(memory.messages), 2)
         self.assertEqual(memory.messages[0].content, "What day is today?")
         self.assertEqual(memory.messages[1].content, "Today is Tuesday")
 
+        await memory.stopSaving()
+
     async def test_save_messages(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
 
-        await memory.add_message("message", "response")
+        memory.add_message("message", "response")
 
         memory.save_messages(self.config.memory_path)
         memory.messages = []
@@ -52,18 +54,22 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertEqual(memory.messages[0].content, "message")
         self.assertEqual(memory.messages[1].content, "response")
 
+        await memory.stopSaving()
+
     async def test_trim_messages(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
         memory.max_messages_in_buffer = 6
 
         for i in range(60):
-            await memory.add_message(f"Question {i}", f"Answer {i}")
+            memory.add_message(f"Question {i}", f"Answer {i}")
 
         self.assertEqual(len(memory.messages), 6)
         self.assertEqual(memory.messages[0].content, "Question 57")
         self.assertEqual(memory.messages[1].content, "Answer 57")
 
-    def test_trim_messages_buffer(self):
+        await memory.stopSaving()
+
+    async def test_trim_messages_buffer(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
         memory.max_messages_in_buffer = 6
 
@@ -78,7 +84,9 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertEqual(memory.messages[0].content, "Question 7")
         self.assertEqual(memory.messages[1].content, "Answer 7")
 
-    def test_message_from_dict(self):
+        await memory.stopSaving()
+
+    async def test_message_from_dict(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
 
         human_message_dict = {'type': 'human', 'content': 'Hello'}
@@ -103,7 +111,9 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertIsInstance(base_message, BaseMessage)
         self.assertEqual(base_message.content, 'Base message')
 
-    def test_message_from_dict_edge_cases(self):
+        await memory.stopSaving()
+
+    async def test_message_from_dict_edge_cases(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
 
         empty_message_dict = {'type': 'human', 'content': ''}
@@ -122,11 +132,13 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertIsInstance(invalid_type_message, BaseMessage)
         self.assertEqual(invalid_type_message.content, 'Invalid type')
 
+        await memory.stopSaving()
+
     async def test_auto_save(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
         memory.auto_save_interval = 1
 
-        await memory.add_message("Auto-save test", "This should be saved automatically")
+        memory.add_message("Auto-save test", "This should be saved automatically")
 
         # Wait for the auto-save to trigger
         await asyncio.sleep(2)
@@ -135,6 +147,8 @@ class TestMemory(aiounittest.AsyncTestCase):
         self.assertEqual(len(memory.messages), 2)
         self.assertEqual(memory.messages[0].content, "Auto-save test")
         self.assertEqual(memory.messages[1].content, "This should be saved automatically")
+
+        await memory.stopSaving()
 
 if __name__ == '__main__':
     aiounittest.main()

@@ -40,14 +40,16 @@ class Chain:
         self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=config)
         self.memory_assistant.load_messages(self.config.memory_path)
 
-    def cleanup(self):
+    async def cleanup(self):
+        await self.memory_assistant.stopSaving()
+        self.config.cleanup()
+        self.model._client._client.close()
         self.embeddings._client._client.close()
 
     def load_data(self, config) -> Chroma:
         source_type, source_path = DataLoaderFactory.guess_source_type(config)
         loader = DataLoaderFactory.get_loader(source_type)
         data = loader.load_data(source_path)
-
         if data:
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
             all_splits = text_splitter.split_documents(data)
@@ -104,14 +106,14 @@ class Chain:
             print(f"Time taken: {timediff:.2f} ms, {named}")
         self.timestamp = now
 
-    async def do_chain(self, prompt, skip_rag = False):
+    def do_chain(self, prompt, skip_rag = False):
         self._log_time("do_chain start")
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
         history = "\n".join([message.content for message in self.memory_assistant.messages])
 
         """ test without rag, to see the difference """
         if skip_rag:
-            response_message = await self.model.ainvoke(prompt)
+            response_message = self.model.invoke(prompt)
 #            print("Without RAG:")
 #            print(response_message)
 #            print("---")
@@ -133,18 +135,24 @@ class Chain:
             | StrOutputParser()
         )
 
-        agent_docs = self.agent_vectorstore.similarity_search(prompt, 10)
+        max_docs = len(self.agent_vectorstore.get()['documents']) if self.agent_vectorstore.get() else 10
+        max_docs = 10 if max_docs > 10 else max_docs
+        agent_docs = self.agent_vectorstore.similarity_search(prompt, max_docs)
+
+        max_docs = len(self.user_vectorstore.get()['documents']) if self.user_vectorstore.get() else 10
+        max_docs = 10 if max_docs > 10 else max_docs
         user_docs = self.user_vectorstore.similarity_search(prompt, 10)
+
         self._log_time("search done")
 
         text = ""
         try:
-            text = await chain.ainvoke({"context": agent_docs, "uploaded_data": user_docs, "question": prompt})
+            text = chain.invoke({"context": agent_docs, "uploaded_data": user_docs, "question": prompt})
         except Exception as e:
             print(e)
         self._log_time("chain invoked")
 
-        await self.memory_assistant.add_message(prompt, text)
+        self.memory_assistant.add_message(prompt, text)
         self._log_time("Memory handling, done")
 
         return text
