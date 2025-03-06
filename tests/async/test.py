@@ -6,7 +6,7 @@ import tempfile
 import os
 import shutil
 from src.chain import Chain
-from src.memory import MemoryStrategy
+from src.memory_assistant import MemoryStrategy
 from unittest.mock import patch, Mock
 
 class TestChain(aiounittest.AsyncTestCase):
@@ -38,7 +38,7 @@ class TestChain(aiounittest.AsyncTestCase):
     def tearDown(self):
         self._deleteSandbox()
 
-    @patch('src.memory.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
     async def test_question_test_agent(self, mock):
         chain = Chain("test-agent")
 
@@ -60,7 +60,7 @@ class TestChain(aiounittest.AsyncTestCase):
 
         await chain.cleanup()
 
-    @patch('src.memory.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
     async def test_memory(self, mock):
         chain = Chain("test-agent")
         chain.memory_strategy = MemoryStrategy.SUMMARY

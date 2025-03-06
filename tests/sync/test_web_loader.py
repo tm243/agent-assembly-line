@@ -16,7 +16,7 @@ class TestWebLoader(aiounittest.AsyncTestCase):
         documents = loader.load_data('http://example.com/test.html')
 
         mock_driver.get.assert_called_once_with('http://example.com/test.html')
-        self.assertEqual(len(documents), 1)
+        self.assertEqual(len(documents), 2)
         self.assertIsInstance(documents[0], Document)
         self.assertIn('25°C', documents[0].page_content)
         self.assertIn('web', documents[0].metadata['source'])

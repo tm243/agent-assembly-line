@@ -3,7 +3,7 @@ Agent-Assembly-Line
 """
 
 from src.config import Config
-from src.memory import *
+from src.memory_assistant import *
 from src.data_loaders.data_loader_factory import DataLoaderFactory
 from src.exceptions import DataLoadError, EmptyDataError
 

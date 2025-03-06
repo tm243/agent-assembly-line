@@ -3,7 +3,7 @@ import tempfile
 import os
 import shutil
 from src.agent_manager import AgentManager
-from src.memory import MemoryStrategy
+from src.memory_assistant import MemoryStrategy
 from unittest.mock import patch, Mock
 
 class TestAgentManager(aiounittest.AsyncTestCase):
@@ -43,7 +43,7 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         await agent.cleanup()
         self.agent_manager.cleanup()
 
-    @patch('src.memory.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
     async def test_question(self, mock):
         self.agent_manager.select_agent("test-agent", debug=False)
         agent = self.agent_manager.get_agent()
@@ -66,7 +66,7 @@ class TestAgentManager(aiounittest.AsyncTestCase):
 
         await agent.cleanup()
 
-    @patch('src.memory.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
     async def test_memory(self, mock):
         self.agent_manager.select_agent("test-agent", debug=False)
         agent = self.agent_manager.get_agent()
