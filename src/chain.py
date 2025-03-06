@@ -11,8 +11,6 @@ import os
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
-from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_core.chat_history import BaseChatMessageHistory
 
 import datetime
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -83,6 +81,13 @@ class Chain:
             source_type = DataLoaderFactory.guess_url_type(url)
             loader = DataLoaderFactory.get_loader(source_type)
             data = loader.load_data(url)
+
+            if self.config.debug:
+                with open("website_debug.txt", "w") as f:
+                    f.write(data[0].page_content)
+                with open("website_links.txt", "w") as f:
+                    f.write("\n".join(loader.relevant_links))
+
             if data:
                 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
                 all_splits = text_splitter.split_documents(data)
