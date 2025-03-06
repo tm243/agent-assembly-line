@@ -43,6 +43,10 @@ class WebLoader:
             Document(
                 page_content=page_content,
                 metadata={"source": "web", "url": url},
+            ),
+            Document(
+                page_content="\n".join(self.relevant_links),
+                metadata={"source": "web", "url": url, "type": "links"},
             )
         ]
 
