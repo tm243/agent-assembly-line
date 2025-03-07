@@ -92,11 +92,10 @@ class MemoryAssistant():
 
                 # Append new messages to the existing messages, avoiding duplicates
                 new_messages = [message.__dict__ for message in self.messages if message.__dict__['id'] not in existing_message_ids]
-
                 all_messages = existing_messages + new_messages
 
                 with open(file_path, 'w') as file:
-                    json.dump(all_messages, file)
+                    json.dump(all_messages, file, indent=4, sort_keys=True)
                 if self.config.debug:
                     print(f"{len(all_messages)} messages saved to {file_path}")
         except Exception as e:

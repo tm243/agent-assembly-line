@@ -41,6 +41,7 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         agent = self.agent_manager.select_agent("test-agent", debug=False)
         self.assertEqual(agent.agent_name, "test-agent")
         await agent.cleanup()
+        agent.closeModels()
         self.agent_manager.cleanup()
 
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
@@ -65,6 +66,8 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         self.assertIn("I cannot answer this question", text, "Name of country, without RAG")
 
         await agent.cleanup()
+        agent.closeModels()
+
 
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
     async def test_memory(self, mock):
@@ -79,6 +82,8 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         # self.assertIn("dinosaurs", stored_memory, "Dinosaurs in country")
         # mock.assert_called_once_with(question, text)
         await agent.cleanup()
+        agent.closeModels()
+
 
 if __name__ == '__main__':
     aiounittest.main()

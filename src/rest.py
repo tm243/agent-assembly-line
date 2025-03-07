@@ -70,8 +70,9 @@ def info():
 
 @app.post("/api/select-agent")
 async def select_agent(request: AgentSelectItem):
-    await agent_manager.get_agent().cleanup()
-    agent_manager.select_agent(request.agent)
+    if request.agent != agent_manager.get_agent().agent_name:
+        await agent_manager.get_agent().cleanup()
+    agent = agent_manager.select_agent(request.agent)
     return {}
 
 def _detect_url(prompt):

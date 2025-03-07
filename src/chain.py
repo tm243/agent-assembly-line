@@ -20,28 +20,30 @@ from langchain_ollama.llms import OllamaLLM
 from langchain_core.output_parsers import StrOutputParser
 
 class Chain:
-    def __init__(self, agent_name, debug = False):
+    def __init__(self, agent_name, debug = False, config = None):
         self.agent_name = agent_name
-        config = Config(agent_name, debug)
-        self.config = config
+        if not config:
+            self.config = Config(agent_name, debug)
         self.debug_mode = debug
 
-        with open(config.prompt_template, "r") as rag_template_file:
+        with open(self.config.prompt_template, "r") as rag_template_file:
             self.RAG_TEMPLATE = rag_template_file.read()
 
         # do before: llama pull nomic-embed-text
-        self.embeddings = OllamaEmbeddings(model=config.embeddings)
-        self.agent_vectorstore = self.load_data(config)
+        self.embeddings = OllamaEmbeddings(model=self.config.embeddings)
+        self.agent_vectorstore = self.load_data(self.config)
         self.user_vectorstore = Chroma("uploaded-data",self.embeddings)
-        self.model = OllamaLLM(model=config.model_name, timeout=120, ollama_keep_alive=True)
+        self.model = OllamaLLM(model=self.config.model_name, timeout=120, ollama_keep_alive=True)
         self.memory_strategy = MemoryStrategy.SUMMARY
-        self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=config)
+        self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=self.config)
         self.memory_assistant.load_messages(self.config.memory_path)
 
     async def cleanup(self):
         await self.memory_assistant.stopSaving()
         self.memory_assistant.cleanup()
         self.config.cleanup()
+
+    def closeModels(self):
         self.model._client._client.close()
         self.embeddings._client._client.close()
 

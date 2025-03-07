@@ -59,6 +59,7 @@ class TestChain(aiounittest.AsyncTestCase):
         self.assertIn("I cannot answer this question", text, "Name of country, without RAG")
 
         await chain.cleanup()
+        chain.closeModels()
 
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
     async def test_memory(self, mock):
@@ -73,6 +74,7 @@ class TestChain(aiounittest.AsyncTestCase):
         mock.assert_called_once_with(question, text)
 
         await chain.cleanup()
+        chain.closeModels()
 
     # @todo add test "agent not found"
     # @todo add test "more than 10 documents"
