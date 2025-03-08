@@ -16,6 +16,10 @@ export interface Info {
   description: string;
   LLM: string;
   doc: string;
+  memoryStrategy: string;
+  savingInterval: number;
+  autoSaveMessageCount: number;
+  memoryPrompt: string;
 }
 
 const API_URL = 'http://localhost:8000/api';

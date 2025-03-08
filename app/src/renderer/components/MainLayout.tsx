@@ -22,6 +22,10 @@ const MainLayout = () => {
   const [description, setDescription] = useState<string>('');
   const [llm, setLlm] = useState<string>('');
   const [doc, setDoc] = useState<string>('');
+  const [memoryStrategy, setMemoryStrategy] = useState<string>('');
+  const [savingInterval, setSavingInterval] = useState<number>(0);
+  const [autoSaveMessageCount, setAutoSaveMessageCount] = useState<number>(0);
+  const [memoryPrompt, setMemoryPrompt] = useState<string>('');
   const [availableDataSources, setAvailableDataSources] = useState<string[]>([]);
   const [selectedDataSource, setSelectedDataSource] = useState<string>('');
 
@@ -45,10 +49,15 @@ const MainLayout = () => {
       try {
         const fetchedInfo = await fetchInfo();
         const info: { name: string, description: string } = fetchedInfo;
+        console.log(info);
         setName(info.name);
         setDescription(info.description);
         setLlm(fetchedInfo.LLM);
         setDoc(fetchedInfo.doc);
+        setMemoryStrategy(fetchedInfo.memoryStrategy);
+        setSavingInterval(fetchedInfo.savingInterval);
+        setAutoSaveMessageCount(fetchedInfo.autoSaveMessageCount);
+        setMemoryPrompt(fetchedInfo.memoryPrompt);
       } catch (error) {
         console.error('Failed to fetch info:', error);
       }
@@ -111,6 +120,10 @@ const MainLayout = () => {
       setName(fetchedInfo.name);
       setDescription(fetchedInfo.description);
       setDoc(fetchedInfo.doc);
+      setAutoSaveMessageCount(fetchedInfo.autoSaveMessageCount);
+      setMemoryPrompt(fetchedInfo.memoryPrompt);
+      setMemoryStrategy(fetchedInfo.memoryStrategy);
+      setSavingInterval(fetchedInfo.savingInterval);
       const history = await fetchHistory();
       setMessages(history);
     } catch (error) {
@@ -161,8 +174,13 @@ const MainLayout = () => {
             <Typography variant="body1">{name}</Typography>
             <Typography variant="body2">{description}</Typography>
             <br />
-            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>used LLM: {llm}</Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>LLM: {llm}</Typography>
             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>used doc: {doc}</Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>Memory Strategy: {memoryStrategy}</Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>saving interval: {savingInterval}</Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>autoSave message count: {autoSaveMessageCount}</Typography>
+            {/* <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>memory prompt: {memoryPrompt}</Typography> */}
+
           </Box>
           <Box sx={{flexShrink: 0, py: 2, height: "40%", backgroundColor: "#f8f9fa", borderTop: "1px solid #ccc", width: "100%"}}>
             <Typography variant="body2" sx={{ fontSize: "0.75rem", color: "#AAA", marginLeft: 1 }} align="left">

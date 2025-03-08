@@ -17,6 +17,8 @@ from langchain_core.messages import (
     SystemMessage
 )
 
+from src.memory_assistant import MemoryStrategy
+
 app = FastAPI()
 agent_manager = AgentManager()
 agent_manager.select_agent("chat-demo", debug=True)
@@ -65,7 +67,10 @@ def info():
         "description": agent.config.description,
         "LLM": agent.config.model_name,
         "doc": agent.config.doc if agent.config.doc else agent.config.url,
-        "memory": agent.memory_strategy,
+        "memoryStrategy": str(agent.memory_strategy).replace("MemoryStrategy.", ""),
+        "savingInterval": agent.memory_assistant.auto_save_interval_sec,
+        "autoSaveMessageCount": agent.memory_assistant.auto_save_message_count,
+        "memoryPrompt": agent.config.memory_prompt
     }
 
 @app.post("/api/select-agent")

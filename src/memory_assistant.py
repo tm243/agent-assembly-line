@@ -6,7 +6,8 @@ import asyncio
 import json
 import time
 import threading
-import os
+import os, enum
+
 from langchain_core.messages import (
     AIMessage,
     BaseMessage,
@@ -15,7 +16,7 @@ from langchain_core.messages import (
     trim_messages,
 )
 
-class MemoryStrategy():
+class MemoryStrategy(enum.Enum):
     NO_MEMORY = 0
     SUMMARY = 1
     HISTORY = 2
