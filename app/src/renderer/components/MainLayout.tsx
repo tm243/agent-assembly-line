@@ -33,6 +33,26 @@ const MainLayout = () => {
 
   const handleSystemMessage = (message: Message) => {
     setMessages((prevMessages) => [...prevMessages, message]);
+    loadInfo();
+  };
+
+  const loadInfo = async () => {
+    try {
+      const fetchedInfo = await fetchInfo();
+      const info: { name: string, description: string } = fetchedInfo;
+      setName(info.name);
+      setDescription(info.description);
+      setLlm(fetchedInfo.LLM);
+      setDoc(fetchedInfo.doc);
+      setMemoryStrategy(fetchedInfo.memoryStrategy);
+      setSavingInterval(fetchedInfo.savingInterval);
+      setAutoSaveMessageCount(fetchedInfo.autoSaveMessageCount);
+      setMemoryPrompt(fetchedInfo.memoryPrompt);
+      setUserUploadedFiles(fetchedInfo.userUploadedFiles);
+      setUserAddedUrls(fetchedInfo.userUploadedUrls);
+    } catch (error) {
+      console.error('Failed to fetch info:', error);
+    }
   };
 
   useEffect(() => {
@@ -47,24 +67,6 @@ const MainLayout = () => {
         }
     };
 
-    const loadInfo = async () => {
-      try {
-        const fetchedInfo = await fetchInfo();
-        const info: { name: string, description: string } = fetchedInfo;
-        setName(info.name);
-        setDescription(info.description);
-        setLlm(fetchedInfo.LLM);
-        setDoc(fetchedInfo.doc);
-        setMemoryStrategy(fetchedInfo.memoryStrategy);
-        setSavingInterval(fetchedInfo.savingInterval);
-        setAutoSaveMessageCount(fetchedInfo.autoSaveMessageCount);
-        setMemoryPrompt(fetchedInfo.memoryPrompt);
-        setUserUploadedFiles(fetchedInfo.userUploadedFiles);
-        setUserAddedUrls(fetchedInfo.userUploadedUrls);
-      } catch (error) {
-        console.error('Failed to fetch info:', error);
-      }
-    };
 
     const loadAvailableDataSources = async () => {
         try {
