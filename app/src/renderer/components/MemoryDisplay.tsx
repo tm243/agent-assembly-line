@@ -17,7 +17,7 @@ const MemoryDisplay: React.FC = () => {
     };
 
     loadMemory();
-    const intervalId = setInterval(loadMemory, 5000);
+    const intervalId = setInterval(loadMemory, 10000);
 
     return () => clearInterval(intervalId);
   }, []);

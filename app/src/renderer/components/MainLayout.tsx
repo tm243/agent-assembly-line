@@ -175,7 +175,7 @@ const MainLayout = () => {
             <Typography variant="body2">{description}</Typography>
             <br />
             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>LLM: {llm}</Typography>
-            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>used doc: {doc}</Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>RAG: {doc}</Typography>
             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>Memory Strategy: {memoryStrategy}</Typography>
             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>saving interval: {savingInterval}</Typography>
             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>autoSave message count: {autoSaveMessageCount}</Typography>
