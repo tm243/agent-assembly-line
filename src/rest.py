@@ -72,7 +72,7 @@ def info():
         "autoSaveMessageCount": agent.memory_assistant.auto_save_message_count,
         "memoryPrompt": agent.config.memory_prompt,
         "userUploadedFiles": ", ".join(agent.user_uploaded_files),
-        "userAddedurls": ", ".join(agent.user_added_urls)
+        "userAddedUrls": ", ".join(agent.user_added_urls)
     }
 
 @app.post("/api/select-agent")
@@ -94,13 +94,15 @@ def _detect_url(prompt):
 async def question(request: RequestItem):
     agent = agent_manager.get_agent()
     prompt = request.prompt
+    client_should_update = False
 
     if _detect_url(prompt):
         agent.add_url(prompt)
         prompt = "Please summarize the content of the URL in 2-3 sentences"
+        client_should_update = True
 
     text = agent.do_chain(prompt, skip_rag=False)
-    return { "answer" : text }
+    return { "answer" : text, "shouldUpdate" : client_should_update }
 
 @app.get('/api/memory')
 def memory():

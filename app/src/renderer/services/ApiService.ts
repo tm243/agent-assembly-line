@@ -21,7 +21,7 @@ export interface Info {
   autoSaveMessageCount: number;
   memoryPrompt: string;
   userUploadedFiles: string;
-  userUploadedUrls: string;
+  userAddedUrls: string;
 }
 
 const API_URL = 'http://localhost:8000/api';
@@ -34,19 +34,17 @@ export const fetchMessages = async (): Promise<Message[]> => {
   return response.json();
 };
 
-export const sendMessage = async (message: Message): Promise<string> => {
-  const response = await fetch(`${API_URL}/question`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ prompt: message.text }),
-  });
-  if (!response.ok) {
-    throw new Error('Failed to send message');
+export const sendMessage = async (message: Message): Promise<{ answer: string; shouldUpdate: boolean }> => {
+  try {
+    const response = await axios.post(`${API_URL}/question`, { prompt: message.text });
+    return {
+      answer: response.data.answer,
+      shouldUpdate: response.data.shouldUpdate || false,
+    };
+  } catch (error) {
+    console.error('Error sending message:', error);
+    throw error;
   }
-  const data = await response.json();
-  return data.answer;
 };
 
 export const selectAgent = async (agent: string): Promise<void> => {

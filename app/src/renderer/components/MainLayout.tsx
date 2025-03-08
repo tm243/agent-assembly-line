@@ -49,7 +49,7 @@ const MainLayout = () => {
       setAutoSaveMessageCount(fetchedInfo.autoSaveMessageCount);
       setMemoryPrompt(fetchedInfo.memoryPrompt);
       setUserUploadedFiles(fetchedInfo.userUploadedFiles);
-      setUserAddedUrls(fetchedInfo.userUploadedUrls);
+      setUserAddedUrls(fetchedInfo.userAddedUrls);
     } catch (error) {
       console.error('Failed to fetch info:', error);
     }
@@ -99,9 +99,13 @@ const MainLayout = () => {
 
     try {
       setInputValue('');
-      const answer = await sendMessage(userMessage);
+      const { answer, shouldUpdate } = await sendMessage(userMessage);
       const llmMessage: Message = { sender: 'llm', text: answer };
       setMessages((prevMessages) => [...prevMessages, llmMessage]);
+
+      if (shouldUpdate) {
+        loadInfo();
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
@@ -132,7 +136,7 @@ const MainLayout = () => {
       setMemoryStrategy(fetchedInfo.memoryStrategy);
       setSavingInterval(fetchedInfo.savingInterval);
       setUserUploadedFiles(fetchedInfo.userUploadedFiles);
-      setUserAddedUrls(fetchedInfo.userUploadedUrls);
+      setUserAddedUrls(fetchedInfo.userAddedUrls);
       const history = await fetchHistory();
       setMessages(history);
     } catch (error) {
