@@ -119,7 +119,7 @@ class Chain:
     def do_chain(self, prompt, skip_rag = False):
         self._log_time("do_chain start")
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
-        history = "\n".join([message.content for message in self.memory_assistant.messages])
+        history = "\n".join([message.content for message in self.memory_assistant.messages]) if self.config.use_memory else ""
 
         """ test without rag, to see the difference """
         if skip_rag:

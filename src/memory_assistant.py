@@ -57,10 +57,13 @@ class MemoryAssistant():
             self.message_count_since_last_save = 0
 
         if self.strategy == MemoryStrategy.SUMMARY:
-            history = "\n".join([message.content for message in self.messages])
-            asyncio.create_task(self._invoke_model(history))
-            if self.config.debug:
-                print("MemoryAssistant: Summary memory task created")
+            self.summarize_memory()
+
+    def summarize_memory(self):
+        history = "\n".join([message.content for message in self.messages])
+        asyncio.create_task(self._invoke_model(history))
+        if self.config.debug:
+            print("MemoryAssistant: Summary memory task created")
 
     async def _invoke_model(self, history):
         self.summary_memory = await self.model.ainvoke(self.config.memory_prompt + history)
@@ -117,6 +120,9 @@ class MemoryAssistant():
                     print(f"Messages loaded from {file_path}")
         except Exception as e:
             print("Error loading messages: ", e, file_path)
+        finally:
+            self.summarize_memory()
+            self.trim_messages_buffer()
 
     def _message_from_dict(self, data):
         if not data or 'type' not in data or 'content' not in data:

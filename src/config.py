@@ -50,7 +50,8 @@ class Config:
             self.prompt_template = datasource_path + config["prompt"]["template"]
             self.model_name      = config["llm"]["model-name"]
             self.embeddings      = config["llm"]["embeddings"]
-            self.memory_prompt   = config["memory-prompt"] if "memory-prompt" in config else ""
+            self.memory_prompt   = config["memory-prompt"] if "memory-prompt" in config else "Please summarize the conversation."
+            self.use_memory      = config["use-memory"] if "use-memory" in config else False
 
     @property
     def memory_path(self):

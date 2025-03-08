@@ -7,6 +7,7 @@ test-async:
 test-sync:
 	python -m unittest discover -s tests/sync
 
+tests: test
 test:
 	python -m unittest discover -s tests/
 

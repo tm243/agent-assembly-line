@@ -97,6 +97,13 @@ const MainLayout = () => {
 
   const handleDataSourceChange = async (event: SelectChangeEvent<string>) => {
     const newDataSource = event.target.value as string;
+
+    setName('');
+    setDescription('');
+    setLlm('');
+    setDoc('');
+    setMessages([]);
+
     setSelectedDataSource(newDataSource);
     try {
       await selectAgent(newDataSource);
