@@ -70,7 +70,9 @@ def info():
         "memoryStrategy": str(agent.memory_strategy).replace("MemoryStrategy.", ""),
         "savingInterval": agent.memory_assistant.auto_save_interval_sec,
         "autoSaveMessageCount": agent.memory_assistant.auto_save_message_count,
-        "memoryPrompt": agent.config.memory_prompt
+        "memoryPrompt": agent.config.memory_prompt,
+        "userUploadedFiles": ", ".join(agent.user_uploaded_files),
+        "userAddedurls": ", ".join(agent.user_added_urls)
     }
 
 @app.post("/api/select-agent")
@@ -118,7 +120,7 @@ def upload_file(file: UploadFile = File(...)):
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        total_text_length = agent.add_data(upload_directory, file.filename)
+        total_text_length = agent.add_file(upload_directory, file.filename)
 
     except EmptyDataError as e:
         return JSONResponse(content={"filename": file.filename, "message": e.message}, status_code=400)

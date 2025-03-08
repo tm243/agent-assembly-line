@@ -20,6 +20,10 @@ from langchain_ollama.llms import OllamaLLM
 from langchain_core.output_parsers import StrOutputParser
 
 class Chain:
+
+    user_uploaded_files = []
+    user_added_urls = []
+
     def __init__(self, agent_name, debug = False, config = None):
         self.agent_name = agent_name
         if not config:
@@ -42,6 +46,8 @@ class Chain:
         await self.memory_assistant.stopSaving()
         self.memory_assistant.cleanup()
         self.config.cleanup()
+        self.user_uploaded_files = []
+        self.user_added_urls = []
 
     def closeModels(self):
         self.model._client._client.close()
@@ -60,7 +66,10 @@ class Chain:
             self.agent_vectorstore = Chroma("context", self.embeddings)
         return self.agent_vectorstore
 
-    def add_data(self, upload_directory, filename):
+    def add_file(self, upload_directory, filename):
+        """
+        user uploaded file
+        """
         try:
             filepath = os.path.join(upload_directory, filename)
             source_type = DataLoaderFactory.guess_file_type(filepath)
@@ -77,8 +86,14 @@ class Chain:
         except Exception as e:
             print("Adding user data failed:", e)
             raise DataLoadError(f"Adding **{filename}** of type {source_type} failed: {e}")
+        finally:
+            self.user_uploaded_files.append(filename)
+            print(self.user_uploaded_files)
 
     def add_url(self, url):
+        """
+        user added url
+        """
         if self.config.debug:
             print(f"Adding URL: {url}")
         try:
@@ -104,6 +119,9 @@ class Chain:
         except Exception as e:
             print("Adding url failed:", e)
             raise DataLoadError(f"Adding **{url}** of type {source_type} failed: {e}")
+        finally:
+            self.user_added_urls.append(url)
+            print(self.user_added_urls)
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)

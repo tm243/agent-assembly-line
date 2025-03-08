@@ -28,6 +28,8 @@ const MainLayout = () => {
   const [memoryPrompt, setMemoryPrompt] = useState<string>('');
   const [availableDataSources, setAvailableDataSources] = useState<string[]>([]);
   const [selectedDataSource, setSelectedDataSource] = useState<string>('');
+  const [userUploadedFiles, setUserUploadedFiles] = useState<string>('');
+  const [userAddedUrls, setUserAddedUrls] = useState<string>('');
 
   const handleSystemMessage = (message: Message) => {
     setMessages((prevMessages) => [...prevMessages, message]);
@@ -49,7 +51,6 @@ const MainLayout = () => {
       try {
         const fetchedInfo = await fetchInfo();
         const info: { name: string, description: string } = fetchedInfo;
-        console.log(info);
         setName(info.name);
         setDescription(info.description);
         setLlm(fetchedInfo.LLM);
@@ -58,6 +59,8 @@ const MainLayout = () => {
         setSavingInterval(fetchedInfo.savingInterval);
         setAutoSaveMessageCount(fetchedInfo.autoSaveMessageCount);
         setMemoryPrompt(fetchedInfo.memoryPrompt);
+        setUserUploadedFiles(fetchedInfo.userUploadedFiles);
+        setUserAddedUrls(fetchedInfo.userUploadedUrls);
       } catch (error) {
         console.error('Failed to fetch info:', error);
       }
@@ -112,6 +115,8 @@ const MainLayout = () => {
     setLlm('');
     setDoc('');
     setMessages([]);
+    setUserUploadedFiles('');
+    setUserAddedUrls('');
 
     setSelectedDataSource(newDataSource);
     try {
@@ -124,6 +129,8 @@ const MainLayout = () => {
       setMemoryPrompt(fetchedInfo.memoryPrompt);
       setMemoryStrategy(fetchedInfo.memoryStrategy);
       setSavingInterval(fetchedInfo.savingInterval);
+      setUserUploadedFiles(fetchedInfo.userUploadedFiles);
+      setUserAddedUrls(fetchedInfo.userUploadedUrls);
       const history = await fetchHistory();
       setMessages(history);
     } catch (error) {
@@ -180,6 +187,8 @@ const MainLayout = () => {
             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>saving interval: {savingInterval}</Typography>
             <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>autoSave message count: {autoSaveMessageCount}</Typography>
             {/* <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>memory prompt: {memoryPrompt}</Typography> */}
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>files: {userUploadedFiles}</Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#AAA' }}>urls: {userAddedUrls}</Typography>
 
           </Box>
           <Box sx={{flexShrink: 0, py: 2, height: "40%", backgroundColor: "#f8f9fa", borderTop: "1px solid #ccc", width: "100%"}}>

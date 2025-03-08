@@ -20,6 +20,8 @@ export interface Info {
   savingInterval: number;
   autoSaveMessageCount: number;
   memoryPrompt: string;
+  userUploadedFiles: string;
+  userUploadedUrls: string;
 }
 
 const API_URL = 'http://localhost:8000/api';
@@ -105,7 +107,7 @@ export const uploadFile = async (file: File): Promise<Message> => {
         'Content-Type': 'multipart/form-data',
       },
     });
-    console.log('File uploaded:', response.data);
+
     return {
       sender: 'system',
       text: response.data.message || `File "${file.name}" uploaded successfully.`,

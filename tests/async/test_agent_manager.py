@@ -45,15 +45,16 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         self.agent_manager.cleanup()
 
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    async def test_question(self, mock):
+    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    async def test_question(self, mock_summarize_memory, mock_add_message):
         self.agent_manager.select_agent("test-agent", debug=False)
+        mock_summarize_memory.assert_called_once()
         agent = self.agent_manager.get_agent()
 
         question = "How many people live in the country? Short answer."
         text = agent.do_chain(question)
         self.assertIn("300,000", text, "Number of citizen")
-
-        mock.assert_called_once_with(question, text)
+        mock_add_message.assert_called_once_with(question, text)
 
         text = agent.do_chain(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
         self.assertIn("I cannot answer this question", text, "Number of citizen, without RAG")
@@ -68,10 +69,11 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         await agent.cleanup()
         agent.closeModels()
 
-
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    async def test_memory(self, mock):
+    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    async def test_memory(self, mock_summarize_memory, mock):
         self.agent_manager.select_agent("test-agent", debug=False)
+        mock_summarize_memory.assert_called_once()
         agent = self.agent_manager.get_agent()
         agent.memory_strategy = MemoryStrategy.SUMMARY
         question = "Are dinosaurs in the country? Short answer."

@@ -39,8 +39,11 @@ class TestChain(aiounittest.AsyncTestCase):
         self._deleteSandbox()
 
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    async def test_question_test_agent(self, mock):
+    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    async def test_question_test_agent(self, mock_summarize_memory, mock):
         chain = Chain("test-agent")
+
+        mock_summarize_memory.assert_called_once()
 
         question = "How many people live in the country? Short answer."
         text = chain.do_chain(question)
@@ -62,10 +65,13 @@ class TestChain(aiounittest.AsyncTestCase):
         chain.closeModels()
 
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    async def test_memory(self, mock):
+    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    async def test_memory(self, mock_summarize_memory, mock):
         chain = Chain("test-agent")
         chain.memory_strategy = MemoryStrategy.SUMMARY
         question = "Are dinosaurs in the country? Short answer."
+
+        mock_summarize_memory.assert_called_once()
 
         text = chain.do_chain(question)
         # chain.save_memory()
