@@ -97,9 +97,9 @@ async def question(request: RequestItem):
     client_should_update = False
 
     if _detect_url(prompt):
-        agent.add_url(prompt)
-        prompt = "Please summarize the content of the URL in 2-3 sentences"
+        sum, length = agent.add_url(prompt)
         client_should_update = True
+        return { "answer" : sum, "shouldUpdate" : client_should_update }
 
     text = agent.do_chain(prompt, skip_rag=False)
     return { "answer" : text, "shouldUpdate" : client_should_update }

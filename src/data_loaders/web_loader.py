@@ -34,14 +34,23 @@ class WebLoader:
 
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
 
+        title_and_description = " ".join(self.extract_title_and_description(soup))
+        title_and_description += " " + url
+
+        h_t_pairs = self.extract_headline_text_pairs(soup)
+        self.h_t_pairs = h_t_pairs
+
         relevant_links = self.extract_relevant_links(soup, url)
         self.relevant_links = relevant_links
 
-        page_content = "\n".join(line.strip() for line in soup.get_text().splitlines() if line.strip())
+        self.plain_text = "\n".join(line.strip() for line in soup.get_text().splitlines() if line.strip())
+        self.header_text_pairs = "\n\n".join([f"{t[0]} {t[1]}" for t in self.h_t_pairs])
+
+        content = title_and_description + "\n\n" + self.header_text_pairs
 
         return [
             Document(
-                page_content=page_content,
+                page_content=content,
                 metadata={"source": "web", "url": url},
             ),
             Document(
@@ -49,6 +58,28 @@ class WebLoader:
                 metadata={"source": "web", "url": url, "type": "links"},
             )
         ]
+
+    def extract_title_and_description(self, soup):
+        title = soup.title.string
+        description = soup.find("meta", attrs={"name": "description"})
+        if description:
+            description = description["content"]
+        return title, description
+
+    def extract_headline_text_pairs(self, soup):
+        headline_text_pairs = []
+        for headline in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6", "header"]):
+            text = self.find_nearest_text(headline)
+            headline_text = "** " + headline.get_text(". ", strip=True) + " **\n"
+            if text:
+                headline_text_pairs.append((headline_text, text))
+        return headline_text_pairs
+
+    def find_nearest_text(self, headline):
+        for sibling in headline.find_next_siblings():
+            if sibling.name in ["p", "div", "section"] and sibling.get_text(". ",strip=True):
+                return sibling.get_text(strip=True)
+        return ""
 
     def extract_relevant_links(self, soup, base_url):
         relevant_links = []

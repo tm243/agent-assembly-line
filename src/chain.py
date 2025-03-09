@@ -6,6 +6,7 @@ from src.config import Config
 from src.memory_assistant import *
 from src.data_loaders.data_loader_factory import DataLoaderFactory
 from src.exceptions import DataLoadError, EmptyDataError
+from src.utils.inspectable_runnable import InspectableRunnable
 
 import os
 
@@ -88,7 +89,6 @@ class Chain:
             raise DataLoadError(f"Adding **{filename}** of type {source_type} failed: {e}")
         finally:
             self.user_uploaded_files.append(filename)
-            print(self.user_uploaded_files)
 
     def add_url(self, url):
         """
@@ -107,21 +107,22 @@ class Chain:
                     f.write(data[0].page_content)
                 with open("website_links.txt", "w") as f:
                     f.write("\n".join(loader.relevant_links))
+                with open("website_h_t_pairs.txt", "w") as f:
+                    f.write(loader.header_text_pairs)
 
             if data:
                 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
                 all_splits = text_splitter.split_documents(data)
                 self.user_vectorstore.add_documents(all_splits)
-                total_text_length = sum(len(doc.page_content) for doc in all_splits)
-                return total_text_length
             else:
                 raise EmptyDataError(url)
         except Exception as e:
             print("Adding url failed:", e)
             raise DataLoadError(f"Adding **{url}** of type {source_type} failed: {e}")
         finally:
+            sum = self.model.invoke(f"Classify the type of website this text comes from. Be short and definitive in your answer. Do not hedge with phrases like 'appears to be' or 'likely.' State the category clearly (e.g., 'This is a technology news website like Heise Online.'). Here is the text: {data[0].page_content}")
             self.user_added_urls.append(url)
-            print(self.user_added_urls)
+            return sum, len(data[0].page_content)
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
@@ -159,6 +160,7 @@ class Chain:
                     agent=lambda input: agent_info
             )
             | rag_prompt
+            | InspectableRunnable(debug=self.debug_mode)
             | self.model
             | StrOutputParser()
         )
@@ -175,6 +177,8 @@ class Chain:
 
         self._log_time("search done")
         if self.config.debug:
+            print(f"Agent vector store size: {len(self.agent_vectorstore.get()['documents'])}")
+            print(f"User vector store size: {len(self.user_vectorstore.get()['documents'])}")
             print(f"Agent docs: {len(agent_docs)}")
             print(f"User docs: {len(user_docs)}")
             print(f"History: {len(history)}")
