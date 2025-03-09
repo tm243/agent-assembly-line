@@ -37,8 +37,10 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         self.agent_manager.cleanup()
         self._deleteSandbox()
 
-    async def test_select_agent(self):
+    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    async def test_select_agent(self, mock_summarize_memory):
         agent = self.agent_manager.select_agent("test-agent", debug=False)
+        mock_summarize_memory.assert_called_once()
         self.assertEqual(agent.agent_name, "test-agent")
         await agent.cleanup()
         agent.closeModels()

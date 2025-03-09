@@ -34,7 +34,7 @@ class WebLoader:
 
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
 
-        title_and_description = " ".join(self.extract_title_and_description(soup))
+        title_and_description = self.extract_title_and_description(soup)
         title_and_description += " " + url
 
         h_t_pairs = self.extract_headline_text_pairs(soup)
@@ -43,10 +43,12 @@ class WebLoader:
         relevant_links = self.extract_relevant_links(soup, url)
         self.relevant_links = relevant_links
 
-        self.plain_text = "\n".join(line.strip() for line in soup.get_text().splitlines() if line.strip())
         self.header_text_pairs = "\n\n".join([f"{t[0]} {t[1]}" for t in self.h_t_pairs])
 
         content = title_and_description + "\n\n" + self.header_text_pairs
+        if not self.header_text_pairs:
+            self.plain_text = "\n".join(line.strip() for line in soup.get_text().splitlines() if line.strip())
+            content += "\n\n" + self.plain_text
 
         return [
             Document(
@@ -60,11 +62,13 @@ class WebLoader:
         ]
 
     def extract_title_and_description(self, soup):
-        title = soup.title.string
+        result = ""
+        if soup.title:
+            result += soup.title.string
         description = soup.find("meta", attrs={"name": "description"})
         if description:
-            description = description["content"]
-        return title, description
+            result += description["content"]
+        return result
 
     def extract_headline_text_pairs(self, soup):
         headline_text_pairs = []
