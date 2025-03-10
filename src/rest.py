@@ -112,8 +112,8 @@ async def stream(request: Request):
 
     async def event_generator():
         if _detect_url(prompt):
-            summary, _ = agent.add_url(prompt)
-            yield f"data: {summary}\n\n"
+            summary, size = agent.add_url(prompt)
+            yield f"data: {summary} {size}\n\n"
         else:
             async for response in agent.stream(prompt):
                 yield f"data: {response}\n\n"

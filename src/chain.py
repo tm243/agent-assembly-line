@@ -106,7 +106,7 @@ class Chain:
 
             if self.config.debug:
                 with open("website_debug.txt", "w") as f:
-                    f.write(data[0].page_content)
+                    f.write(loader.plain_text)
                 with open("website_links.txt", "w") as f:
                     f.write("\n".join(loader.relevant_links))
                 with open("website_h_t_pairs.txt", "w") as f:
@@ -123,8 +123,10 @@ class Chain:
             raise DataLoadError(f"Adding **{url}** of type {source_type} failed: {e}")
         finally:
             sum = self.model.invoke(f"Classify the type of website this text comes from. Be short and definitive in your answer. Do not hedge with phrases like 'appears to be' or 'likely.' State the category clearly (e.g., 'This is a technology news website like Heise Online.'). Here is the text: {data[0].page_content}")
+            size = len(data[0].page_content)
             self.user_added_urls.append(url)
-            return sum, len(data[0].page_content)
+            print(f"URL added: {url} {size}")
+            return sum, size
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
@@ -203,7 +205,7 @@ class Chain:
         max_docs = len(self.user_vectorstore.get()['documents']) if self.user_vectorstore.get() else 10
         max_docs = 10 if max_docs > 10 else max_docs
         max_docs = max_docs if max_docs > 0 else 1
-        user_docs = self.user_vectorstore.similarity_search(prompt, 10)
+        user_docs = self.user_vectorstore.similarity_search(prompt, max_docs)
 
         self._log_time("search done")
         if self.config.debug:

@@ -34,6 +34,8 @@ class WebLoader:
 
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
 
+        self.plain_text = "\n".join(line.strip() for line in soup.get_text().splitlines() if line.strip())
+
         title_and_description = self.extract_title_and_description(soup)
         title_and_description += " " + url
 
@@ -46,8 +48,8 @@ class WebLoader:
         self.header_text_pairs = "\n\n".join([f"{t[0]} {t[1]}" for t in self.h_t_pairs])
 
         content = title_and_description + "\n\n" + self.header_text_pairs
+
         if not self.header_text_pairs:
-            self.plain_text = "\n".join(line.strip() for line in soup.get_text().splitlines() if line.strip())
             content += "\n\n" + self.plain_text
 
         return [
