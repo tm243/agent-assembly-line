@@ -47,6 +47,8 @@ class MemoryAssistant():
         self.strategy = MemoryStrategy.NO_MEMORY
 
     def add_message(self, prompt, answer):
+        if self.config.debug:
+            print(f"MemoryAssistant: Adding message: {prompt} -> {answer[:30]}...")
         timestamp = time.time()
         self.messages.append(HumanMessage(content=prompt, id=f"human-{timestamp}"))
         self.messages.append(AIMessage(content=answer, id=f"ai-{timestamp}"))
@@ -72,6 +74,7 @@ class MemoryAssistant():
             print("MemoryAssistant: Summary memory done")
 
     def trim_messages_buffer(self):
+        l_before = len(self.messages)
         self.messages = trim_messages(
             self.messages,
             token_counter=len,
@@ -81,6 +84,9 @@ class MemoryAssistant():
             include_system=True,
             allow_partial=False,
         )
+        if self.config.debug:
+            print(f"MemoryAssistant: Trimmed messages from {l_before} to {len(self.messages)}")
+            print(f"MemoryAssistant: Messages: {self.messages[0]} {self.messages[9]}")
 
     def save_messages(self, file_path):
         try:

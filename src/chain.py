@@ -212,6 +212,7 @@ class Chain:
             print(f"Agent docs: {len(agent_docs)}")
             print(f"User docs: {len(user_docs)}")
             print(f"History: {len(history)}")
+            print(f"Agent info: {agent_info}")
 
         text = ""
         try:

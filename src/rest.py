@@ -81,7 +81,7 @@ async def select_agent(request: AgentSelectItem):
     if request.agent != agent_manager.get_agent().agent_name:
         await agent_manager.get_agent().cleanup()
         agent_manager.get_agent().closeModels()
-    agent = agent_manager.select_agent(request.agent)
+    agent = agent_manager.select_agent(request.agent, debug=True)
     return {}
 
 def _detect_url(prompt):
