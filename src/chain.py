@@ -135,7 +135,31 @@ class Chain:
             print(f"Time taken: {timediff:.2f} ms, {named}")
         self.timestamp = now
 
-    def do_chain(self, prompt, skip_rag = False):
+    def run(self, prompt, skip_rag = False):
+        text = self.do_chain(prompt, skip_rag, self.run_callback)
+        self._log_time("chain invoked")
+        self.memory_assistant.add_message(prompt, text)
+        self._log_time("Memory handling, done")
+        return text
+
+    async def stream(self, prompt):
+        collected_responses = ""
+        for response in self.do_chain(prompt, False, self.stream_callback):
+            collected_responses += response
+            yield response
+        self._log_time("chain invoked")
+        self.memory_assistant.add_message(prompt, collected_responses)
+        self._log_time("Memory handling, done")
+
+    def stream_callback(self, prompt, chain):
+        # @todo: async generator
+        for result in chain.stream(prompt):
+            yield result
+
+    def run_callback(self, prompt, chain):
+        return chain.invoke(prompt)
+
+    def do_chain(self, prompt, skip_rag = False, callback = None):
         self._log_time("do_chain start")
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
         history = "\n".join([message.content for message in self.memory_assistant.messages]) if self.config.use_memory else ""
@@ -185,15 +209,10 @@ class Chain:
 
         text = ""
         try:
-            text = chain.invoke({"context": agent_docs, "uploaded_data": user_docs, "question": prompt})
+            if callback:
+                return callback({"context": agent_docs, "uploaded_data": user_docs, "question": prompt}, chain)
         except Exception as e:
             print(e)
-        self._log_time("chain invoked")
-
-        self.memory_assistant.add_message(prompt, text)
-        self._log_time("Memory handling, done")
-
-        return text
 
     def get_summary_memory(self):
         return self.memory_assistant.summary_memory

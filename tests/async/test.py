@@ -46,20 +46,38 @@ class TestChain(aiounittest.AsyncTestCase):
         mock_summarize_memory.assert_called_once()
 
         question = "How many people live in the country? Short answer."
-        text = chain.do_chain(question)
+        text = chain.run(question)
         self.assertIn("300,000", text, "Number of citizen")
 
         mock.assert_called_once_with(question, text)
 
-        text = chain.do_chain(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
+        text = chain.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
         self.assertIn("I cannot answer this question", text, "Number of citizen, without RAG")
 
         question = "What is the name of the country? Short answer."
-        text = chain.do_chain(question)
+        text = chain.run(question)
         self.assertIn("Aethelland", text, "Name of country")
 
-        text = chain.do_chain(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
+        text = chain.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
         self.assertIn("I cannot answer this question", text, "Name of country, without RAG")
+
+        await chain.cleanup()
+        chain.closeModels()
+
+    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    async def test_question_stream(self, mock_summarize_memory, mock_add_messages):
+        chain = Chain("test-agent")
+
+        mock_summarize_memory.assert_called_once()
+
+        question = "How many people live in the country? Short answer."
+        text = ""
+        async for chunk in chain.stream(question):
+            text += chunk
+        self.assertIn("300,000", text, "Number of citizen")
+
+        mock_add_messages.assert_called_once_with(question, text)
 
         await chain.cleanup()
         chain.closeModels()
@@ -73,7 +91,7 @@ class TestChain(aiounittest.AsyncTestCase):
 
         mock_summarize_memory.assert_called_once()
 
-        text = chain.do_chain(question)
+        text = chain.run(question)
         # chain.save_memory()
         # stored_memory = chain.load_memory()
         # self.assertIn("dinosaurs", stored_memory, "Dinosaurs in country")

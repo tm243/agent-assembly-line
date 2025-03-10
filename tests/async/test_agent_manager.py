@@ -54,18 +54,18 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         agent = self.agent_manager.get_agent()
 
         question = "How many people live in the country? Short answer."
-        text = agent.do_chain(question)
+        text = agent.run(question)
         self.assertIn("300,000", text, "Number of citizen")
         mock_add_message.assert_called_once_with(question, text)
 
-        text = agent.do_chain(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
+        text = agent.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
         self.assertIn("I cannot answer this question", text, "Number of citizen, without RAG")
 
         question = "What is the name of the country? Short answer."
-        text = agent.do_chain(question)
+        text = agent.run(question)
         self.assertIn("Aethelland", text, "Name of country")
 
-        text = agent.do_chain(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
+        text = agent.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
         self.assertIn("I cannot answer this question", text, "Name of country, without RAG")
 
         await agent.cleanup()
@@ -80,7 +80,7 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         agent.memory_strategy = MemoryStrategy.SUMMARY
         question = "Are dinosaurs in the country? Short answer."
 
-        text = agent.do_chain(question)
+        text = agent.run(question)
         # agent.save_memory()
         # stored_memory = agent.load_memory()
         # self.assertIn("dinosaurs", stored_memory, "Dinosaurs in country")
