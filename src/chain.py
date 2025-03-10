@@ -43,6 +43,8 @@ class Chain:
         self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=self.config)
         self.memory_assistant.load_messages(self.config.memory_path)
 
+        self.stats = {}
+
     async def cleanup(self):
         await self.memory_assistant.stopSaving()
         self.memory_assistant.cleanup()
@@ -142,22 +144,26 @@ class Chain:
         self._log_time("Memory handling, done")
         return text
 
-    async def stream(self, prompt):
+    async def stream(self, prompt, skip_rag = False):
         collected_responses = ""
-        for response in self.do_chain(prompt, False, self.stream_callback):
+        async for response in self.do_chain(prompt, skip_rag, self.stream_callback):
             collected_responses += response
             yield response
         self._log_time("chain invoked")
         self.memory_assistant.add_message(prompt, collected_responses)
         self._log_time("Memory handling, done")
 
-    def stream_callback(self, prompt, chain):
-        # @todo: async generator
-        for result in chain.stream(prompt):
+    async def stream_callback(self, prompt, chain):
+        async for result in chain.astream(prompt):
             yield result
 
     def run_callback(self, prompt, chain):
         return chain.invoke(prompt)
+
+    def _stats_callback(self, stats):
+        if self.debug_mode:
+            print(f"Prompt size: {stats['prompt_size']} characters")
+        self.stats.update(stats)
 
     def do_chain(self, prompt, skip_rag = False, callback = None):
         self._log_time("do_chain start")
@@ -184,7 +190,7 @@ class Chain:
                     agent=lambda input: agent_info
             )
             | rag_prompt
-            | InspectableRunnable(debug=self.debug_mode)
+            | InspectableRunnable(statsCallback=self._stats_callback)
             | self.model
             | StrOutputParser()
         )

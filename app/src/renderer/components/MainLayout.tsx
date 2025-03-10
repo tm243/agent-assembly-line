@@ -198,7 +198,7 @@ const MainLayout = () => {
                 variant="outlined"
                 value={inputValue}
                 size='small'
-                onKeyDown={(e) => {if(e.key === 'Enter') {handleSendMessage();}}}
+                onKeyDown={(e) => {if(e.key === 'Enter') {handleStreamMessage();}}}
                 onChange={(e) => setInputValue(e.target.value)}
             />
             <FileUploadButton onSystemMessage={handleSystemMessage} />
