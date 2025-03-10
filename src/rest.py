@@ -18,6 +18,7 @@ from langchain_core.messages import (
 )
 
 from src.memory_assistant import MemoryStrategy
+from fastapi.responses import StreamingResponse
 
 app = FastAPI()
 agent_manager = AgentManager()
@@ -94,15 +95,31 @@ def _detect_url(prompt):
 async def question(request: RequestItem):
     agent = agent_manager.get_agent()
     prompt = request.prompt
-    client_should_update = False
 
     if _detect_url(prompt):
-        sum, length = agent.add_url(prompt)
-        client_should_update = True
-        return { "answer" : sum, "shouldUpdate" : client_should_update }
+        sum, size = agent.add_url(prompt)
+        return { "answer" : sum, "shouldUpdate" : True, "size" : size }
 
-    text = agent.do_chain(prompt, skip_rag=False)
-    return { "answer" : text, "shouldUpdate" : client_should_update }
+    text = agent.run(prompt, skip_rag=False)
+    return { "answer" : text, "shouldUpdate" : False, "size" : 0 }
+
+from fastapi import Request
+
+@app.get("/api/stream")
+async def stream(request: Request):
+    agent = agent_manager.get_agent()
+    prompt = request.query_params.get("prompt")
+
+    async def event_generator():
+        if _detect_url(prompt):
+            summary, _ = agent.add_url(prompt)
+            yield f"data: {summary}\n\n"
+        else:
+            async for response in agent.stream(prompt):
+                yield f"data: {response}\n\n"
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.get('/api/memory')
 def memory():

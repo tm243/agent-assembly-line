@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, MenuItem, Select, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
 import Chat from './Chat';
 import PulsingDot from './PulsingDot';
-import { sendMessage, Message, fetchInfo, selectAgent, fetchDataSources, fetchHistory } from '../services/ApiService';
+import { sendMessage, Message, fetchInfo, selectAgent, fetchDataSources, fetchHistory, streamMessage } from '../services/ApiService';
 import MemoryDisplay from './MemoryDisplay';
 import FileUploadButton from './FileUploadButton';
 
@@ -18,6 +18,7 @@ const MainLayout = () => {
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<number | null>(null);
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [llm, setLlm] = useState<string>('');
@@ -67,7 +68,6 @@ const MainLayout = () => {
         }
     };
 
-
     const loadAvailableDataSources = async () => {
         try {
           const sources = await fetchDataSources();
@@ -109,6 +109,44 @@ const MainLayout = () => {
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleStreamMessage = async () => {
+    if (inputValue.trim() === '') return;
+
+    const userMessage: Message = { sender: 'user', text: inputValue };
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setIsSending(true);
+
+    try {
+      setInputValue('');
+      const tempMessage: Message = { sender: 'llm', text: '' };
+      setMessages((prevMessages) => [...prevMessages, tempMessage]);
+      const tempMessageId = messages.length+1;
+
+      streamMessage(
+        userMessage,
+        (data: string) => {
+          setMessages((prevMessages) => {
+            const updatedMessages = [...prevMessages];
+            updatedMessages[tempMessageId] = { ...updatedMessages[tempMessageId], text: updatedMessages[tempMessageId].text + data };
+            return updatedMessages;
+          });
+        },
+        () => {
+          setStreamingMessageId(null);
+          setIsSending(false);
+        },
+        (error) => {
+          console.error('Failed to stream message:', error);
+          setStreamingMessageId(null);
+          setIsSending(false);
+        }
+      );
+    } catch (error) {
+      console.error('Failed to stream message:', error);
       setIsSending(false);
     }
   };
@@ -164,7 +202,7 @@ const MainLayout = () => {
                 onChange={(e) => setInputValue(e.target.value)}
             />
             <FileUploadButton onSystemMessage={handleSystemMessage} />
-            <Button variant="contained" color="primary" onClick={handleSendMessage}>
+            <Button variant="contained" color="primary" onClick={handleStreamMessage}>
                 Send
             </Button>
         </Box>

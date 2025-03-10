@@ -7,11 +7,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import MarkdownRenderer from './MarkdownRenderer';
-
-interface Message {
-  sender: 'user' | 'llm' | 'system';
-  text: string;
-}
+import { Message } from '../services/ApiService';
 
 interface ChatProps {
   messages: Message[];

@@ -47,6 +47,25 @@ export const sendMessage = async (message: Message): Promise<{ answer: string; s
   }
 };
 
+export const streamMessage = (message: Message, onMessage: (data: string) => void,  onComplete: () => void, onError: (error: Event) => void): void => {
+  const eventSource = new EventSource(`${API_URL}/stream?prompt=${encodeURIComponent(message.text)}`);
+
+  eventSource.onmessage = (event) => {
+    if (event.data === '[DONE]') {
+      eventSource.close();
+      onComplete();
+    } else {
+      onMessage(event.data);
+    }  };
+
+  eventSource.onerror = (error) => {
+    console.error('Error with message stream:', error);
+    eventSource.close();
+    onError(error);
+  };
+};
+
+
 export const selectAgent = async (agent: string): Promise<void> => {
   const response = await fetch(`${API_URL}/select-agent`, {
     method: 'POST',
