@@ -11,6 +11,7 @@ class Config:
     wait_class_name = ""
     prompt_template = ""
     model_name = ""
+    model_identifier = ""
     embeddings = ""
     memory_prompt = ""
     debug = False
@@ -49,9 +50,14 @@ class Config:
 
             self.prompt_template = datasource_path + config["prompt"]["template"]
             self.model_name      = config["llm"]["model-name"]
+            self.model_identifier = config["llm"]["model-identifier"]
             self.embeddings      = config["llm"]["embeddings"]
             self.memory_prompt   = config["memory-prompt"] if "memory-prompt" in config else "Please summarize the conversation."
             self.use_memory      = config["use-memory"] if "use-memory" in config else False
+
+            # Ollama specifics:
+            self.timeout         = config["timeout"] if "timeout" in config else 120
+            self.ollama_keep_alive = config["ollama-keep-alive"] if "ollama-keep-alive" in config else False
 
     @property
     def memory_path(self):
@@ -75,6 +81,7 @@ class Config:
         self.wait_class_name = None
         self.prompt_template = None
         self.model_name = None
+        self.model_identifier = None
         self.embeddings = None
         self.memory_prompt = None
         self.debug = None

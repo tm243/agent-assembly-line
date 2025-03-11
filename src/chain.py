@@ -20,6 +20,8 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_ollama.llms import OllamaLLM
 from langchain_core.output_parsers import StrOutputParser
 
+from src.llm_factory import LLMFactory
+
 class Chain:
 
     user_uploaded_files = []
@@ -34,11 +36,10 @@ class Chain:
         with open(self.config.prompt_template, "r") as rag_template_file:
             self.RAG_TEMPLATE = rag_template_file.read()
 
-        # do before: llama pull nomic-embed-text
-        self.embeddings = OllamaEmbeddings(model=self.config.embeddings)
+        self.model, self.embeddings = LLMFactory.create_llm_and_embeddings(self.config)
+
         self.agent_vectorstore = self.load_data(self.config)
         self.user_vectorstore = Chroma("uploaded-data",self.embeddings)
-        self.model = OllamaLLM(model=self.config.model_name, timeout=120, ollama_keep_alive=True)
         self.memory_strategy = MemoryStrategy.SUMMARY
         self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=self.config)
         self.memory_assistant.load_messages(self.config.memory_path)
@@ -122,11 +123,12 @@ class Chain:
             print("Adding url failed:", e)
             raise DataLoadError(f"Adding **{url}** of type {source_type} failed: {e}")
         finally:
-            sum = self.model.invoke(f"Classify the type of website this text comes from. Be short and definitive in your answer. Do not hedge with phrases like 'appears to be' or 'likely.' State the category clearly (e.g., 'This is a technology news website like Heise Online.'). Here is the text: {data[0].page_content}")
+            summary = self.model.invoke(f"Classify the type of website this text comes from. Be short and definitive in your answer. Do not hedge with phrases like 'appears to be' or 'likely.' State the category clearly (e.g., 'This is a technology news website like Heise Online.'). Here is the text: {data[0].page_content}")
+            summary = LLMFactory.extract_response(summary)
             size = len(data[0].page_content)
             self.user_added_urls.append(url)
-            print(f"URL added: {url} {size}")
-            return sum, size
+            print(f"URL added: {url}, {size} characters")
+            return summary, size
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
@@ -180,13 +182,13 @@ class Chain:
 #            print("---")
             return response_message
         today = datetime.datetime.now().strftime("%A, %B %d, %Y %I:%M %p")
-        agent_info = self.config.name
+        agent_info = self.config.name + " using " + self.config.model_name
 
         # @todo: session id to separate conversations
         chain = (
             RunnablePassthrough.assign(
-                    context=lambda input: Chain.format_docs(input["context"]),
-                    uploaded_data=lambda input: Chain.format_docs(input["uploaded_data"]),
+                    global_store=lambda input: Chain.format_docs(input["global_store"]),
+                    session_store=lambda input: Chain.format_docs(input["session_store"]),
                     history=lambda input: history,
                     today=lambda input: today,
                     agent=lambda input: agent_info
@@ -216,10 +218,9 @@ class Chain:
             print(f"History: {len(history)}")
             print(f"Agent info: {agent_info}")
 
-        text = ""
         try:
             if callback:
-                return callback({"context": agent_docs, "uploaded_data": user_docs, "question": prompt}, chain)
+                return callback({"global_store": agent_docs, "session_store": user_docs, "question": prompt}, chain)
         except Exception as e:
             print(e)
 
