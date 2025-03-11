@@ -4,7 +4,7 @@ Chat history:
 {history}
 
 Context:
-{context}
+{global_store}
 
 Question:
 {question}

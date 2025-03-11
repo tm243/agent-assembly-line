@@ -80,6 +80,7 @@ class TestChain(aiounittest.AsyncTestCase):
         mock_add_messages.assert_called_once_with(question, text)
 
         await chain.cleanup()
+        await chain.aCloseModels()
         chain.closeModels()
 
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
@@ -105,3 +106,4 @@ class TestChain(aiounittest.AsyncTestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

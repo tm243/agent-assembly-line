@@ -57,6 +57,10 @@ class Chain:
         self.model._client._client.close()
         self.embeddings._client._client.close()
 
+    async def aCloseModels(self):
+        await self.model._async_client._client.aclose()
+        await self.embeddings._async_client._client.aclose()
+
     def load_data(self, config) -> Chroma:
         source_type, source_path = DataLoaderFactory.guess_source_type(config)
         loader = DataLoaderFactory.get_loader(source_type)
@@ -124,7 +128,7 @@ class Chain:
             raise DataLoadError(f"Adding **{url}** of type {source_type} failed: {e}")
         finally:
             summary = self.model.invoke(f"Classify the type of website this text comes from. Be short and definitive in your answer. Do not hedge with phrases like 'appears to be' or 'likely.' State the category clearly (e.g., 'This is a technology news website like Heise Online.'). Here is the text: {data[0].page_content}")
-            summary = LLMFactory.extract_response(summary)
+            summary = LLMFactory.extract_response(summary, self.config)
             size = len(data[0].page_content)
             self.user_added_urls.append(url)
             print(f"URL added: {url}, {size} characters")
@@ -148,6 +152,9 @@ class Chain:
         self._log_time("Memory handling, done")
         return text
 
+    def run_callback(self, prompt, chain):
+        return chain.invoke(prompt)
+
     async def stream(self, prompt, skip_rag = False):
         collected_responses = ""
         async for response in self.do_chain(prompt, skip_rag, self.stream_callback):
@@ -158,11 +165,15 @@ class Chain:
         self._log_time("Memory handling, done")
 
     async def stream_callback(self, prompt, chain):
-        async for result in chain.astream(prompt):
-            yield result
+        try:
+            stream = chain.astream(prompt)
+            async for result in stream:
+                yield result
+        except Exception as e:
+            print(e)
+        finally:
+            stream.aclose()
 
-    def run_callback(self, prompt, chain):
-        return chain.invoke(prompt)
 
     def _stats_callback(self, stats):
         if self.debug_mode:
