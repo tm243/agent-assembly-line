@@ -1,3 +1,9 @@
+/**
+ * Agent Assembly Line
+ * License Apache-2.0
+ * See the LICENSE file in the root directory for details.
+ */
+
 import React, { useRef } from 'react';
 import { IconButton } from '@mui/material';
 import AttachFileIcon from '@mui/icons-material/AttachFile';

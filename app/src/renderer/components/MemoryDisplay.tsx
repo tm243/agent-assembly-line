@@ -1,3 +1,9 @@
+/**
+ * Agent Assembly Line
+ * License Apache-2.0
+ * See the LICENSE file in the root directory for details.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Box, TextareaAutosize } from '@mui/material';
 import { fetchMemory } from '../services/ApiService';

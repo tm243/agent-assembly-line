@@ -1,3 +1,9 @@
+/**
+ * Agent Assembly Line
+ * License Apache-2.0
+ * See the LICENSE file in the root directory for details.
+ */
+
 import React from 'react';
 import Markdown from 'markdown-to-jsx';
 import { Box } from '@mui/material';
