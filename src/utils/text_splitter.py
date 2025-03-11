@@ -1,3 +1,7 @@
+"""
+Agent-Assembly-Line
+"""
+
 from langchain_core.text_splitters import RecursiveCharacterTextSplitter
 
 def split_documents(documents, chunk_size=1000, chunk_overlap=100):

@@ -1,3 +1,7 @@
+"""
+Agent-Assembly-Line
+"""
+
 from typing import List
 from langchain_community.document_loaders import PyPDFLoader as LangchainPDFLoader
 from .base_loader import DataLoader

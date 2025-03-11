@@ -1,6 +1,7 @@
 """
 Agent-Assembly-Line
 """
+
 from src.chain import Chain
 
 class AgentManager:
