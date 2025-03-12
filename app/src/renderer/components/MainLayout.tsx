@@ -129,14 +129,21 @@ const MainLayout = () => {
       streamMessage(
         userMessage,
         (data: string) => {
+          let safeData = data.trim() === '' ? '\n' : data;
           setMessages((prevMessages) => {
             const updatedMessages = [...prevMessages];
-            updatedMessages[tempMessageId] = { ...updatedMessages[tempMessageId], text: updatedMessages[tempMessageId].text + data };
+            const prevText = updatedMessages[tempMessageId].text;
+
+            // Avoid double newlines: Don't add if previous text already ends with '\n'
+            if (safeData === '\n' && prevText.endsWith('\n')) {
+              return updatedMessages;
+            }
+
+            updatedMessages[tempMessageId] = { ...updatedMessages[tempMessageId], text: prevText + safeData };
             return updatedMessages;
           });
         },
         () => {
-          // inject the final message, re-render the component
           setStreamingMessageId(null);
           setIsSending(false);
         },
