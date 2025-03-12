@@ -1,0 +1,53 @@
+# LangChain Overview
+
+LangChain is a framework designed for building applications with language models (LLMs). It provides tools for chaining together LLMs and other components like document loaders, retrievers, and databases.
+Common LangChain Components
+LLMChain: Used to link LLMs to other tools.
+DocumentLoaders: Help in loading different types of documents (e.g., PDFs, text, etc.).
+Retrievers: Fetch relevant documents for context or answers.
+Memory: Keeps track of user interactions across sessions.
+Popular LangChain Use Cases
+Conversational Agents: For chatbots with persistent memory and complex queries.
+Document Retrieval: When you want LLMs to respond based on specific documents.
+Automation: Integrating multiple tools and APIs into a single LLM-based workflow.
+
+# Agent-Assembly-Line Example
+
+## Overview
+
+Agent-Assembly-Line is designed to streamline and accelerate the development of AI agents. Built on top of LangChain, it simplifies the integration of LLMs, document loading, retrieval, and memory management, making agent creation more efficient.
+
+## Key Features
+
+- **Easy Agent Creation**: Provides simple abstractions to build and deploy conversational agents quickly.
+- **LangChain Integration**: Leverages LangChain for document retrieval, LLM chaining, and conversation memory.
+- **Customizable Pipelines**: Create and modify agent workflows without complex configurations.
+- **Persistent & Session Context**: Supports both persistent knowledge and temporary context for enhanced user interaction.
+
+## Popular Use Cases
+
+- **Conversational Agents**: For chatbots with persistent memory and complex queries.
+- **Document Retrieval**: When you want LLMs to respond based on specific documents.
+- **Automation**: Integrating multiple tools and APIs into a single LLM-based workflow.
+
+## Available Endpoints for Integration
+
+- **POST /question**: Send a query and get a response based on the agent’s context.
+- **POST /stream**: Send a query and get a streamed response based on the agent’s context.
+- **POST /upload-file**: Upload files (e.g., PDFs) for temporary session-based context.
+
+## Example Use Case
+
+- **Create an Agent**: Define the context (global store), configure the retrieval methods, and deploy with minimal setup.
+- **Customize Agent Workflow**: Modify the chain of actions that the agent performs in response to user input, based on your specific needs.
+
+## Code Snippet to Create a Simple Agent
+
+```python
+agent = Agent("chat-demo")
+question = "How many people live in the country?"
+async for chunk in agent.stream(question):
+    print(chunk)
+```
+
+Also refer to the README for more information.
