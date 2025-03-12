@@ -53,7 +53,11 @@ def get_agents():
         folders.extend([f.name for f in os.scandir(local_agents_path) if f.is_dir()])
 
     if os.path.exists(user_agents_path):
-        folders.extend([f.name for f in os.scandir(user_agents_path) if f.is_dir()])
+        for f in os.scandir(user_agents_path):
+            if f.is_dir():
+                config_path = os.path.join(f.path, 'config.yaml')
+                if os.path.exists(config_path):
+                    folders.append(f.name)
 
     return folders
 

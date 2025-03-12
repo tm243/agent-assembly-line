@@ -120,6 +120,10 @@ You need to set your OpenAI **API Key** before running:
 export OPENAI_API_KEY=<your key here>
 ```
 
+> **Note:**
+>
+> Using the OpenAI API may incur costs. Please refer to the OpenAI pricing page for more details.
+
 # Usage
 
 ```python
