@@ -18,8 +18,8 @@ class TestAgent(aiounittest.AsyncTestCase):
         self.memory_path = os.path.join(self.config_path, "history.json")
         test_agent_path = os.path.join("tests", "test-agent")
         shutil.copytree(test_agent_path, self.config_path, dirs_exist_ok=True)
-        os.environ['USER_DATASOURCE_PATH'] = self.config_path
-        os.environ['LOCAL_DATASOURCE_PATH'] = self.config_path
+        os.environ['USER_AGENTS_PATH'] = self.config_path
+        os.environ['LOCAL_AGENTS_PATH'] = self.config_path
         os.environ['USER_MEMORY_PATH'] = self.memory_path
         os.environ['LOCAL_MEMORY_PATH'] = self.memory_path
 
@@ -28,8 +28,8 @@ class TestAgent(aiounittest.AsyncTestCase):
         self.config_path = None
         self.memory_path = None
         self.temp_dir = None
-        os.environ.pop('USER_DATASOURCE_PATH', None)
-        os.environ.pop('LOCAL_DATASOURCE_PATH', None)
+        os.environ.pop('USER_AGENTS_PATH', None)
+        os.environ.pop('LOCAL_AGENTS_PATH', None)
         os.environ.pop('USER_MEMORY_PATH', None)
         os.environ.pop('LOCAL_MEMORY_PATH', None)
 

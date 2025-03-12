@@ -89,7 +89,7 @@ export const fetchInfo = async (): Promise<Info> => {
 };
 
 export const fetchDataSources = async (): Promise<string[]> => {
-  const response = await fetch(`${API_URL}/data-sources`);
+  const response = await fetch(`${API_URL}/agents`);
   if (!response.ok) {
     throw new Error('Failed to fetch data sources');
   }

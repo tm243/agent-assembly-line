@@ -43,23 +43,23 @@ def index():
         "info": ["post your request to localhost:7999/question"]
     }
 
-def get_data_sources():
-    local_datasource_path = "datasource/"
-    user_datasource_path = os.path.expanduser("~/.local/share/agent-assembly-line/agents/")
+def get_agents():
+    local_agents_path = "agents/"
+    user_agents_path = os.path.expanduser("~/.local/share/agent-assembly-line/agents/")
 
     folders = []
 
-    if os.path.exists(local_datasource_path):
-        folders.extend([f.name for f in os.scandir(local_datasource_path) if f.is_dir()])
+    if os.path.exists(local_agents_path):
+        folders.extend([f.name for f in os.scandir(local_agents_path) if f.is_dir()])
 
-    if os.path.exists(user_datasource_path):
-        folders.extend([f.name for f in os.scandir(user_datasource_path) if f.is_dir()])
+    if os.path.exists(user_agents_path):
+        folders.extend([f.name for f in os.scandir(user_agents_path) if f.is_dir()])
 
     return folders
 
-@app.get('/api/data-sources')
+@app.get('/api/agents')
 def data_sources():
-    return get_data_sources()
+    return get_agents()
 
 @app.get('/api/info')
 def info():

@@ -16,7 +16,7 @@ interface MarkdownRendererProps {
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   return (
     <Box className="markdown-content">
-      <Markdown>{content}</Markdown>
+      <Markdown options={{ forceBlock: true, wrapper: 'article' }}>{content}</Markdown>
     </Box>
   );
 };

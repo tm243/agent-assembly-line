@@ -136,6 +136,7 @@ const MainLayout = () => {
           });
         },
         () => {
+          // inject the final message, re-render the component
           setStreamingMessageId(null);
           setIsSending(false);
         },
