@@ -22,7 +22,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 from src.llm_factory import LLMFactory
 
-class Chain:
+class Agent:
 
     user_uploaded_files = []
     user_added_urls = []
@@ -198,8 +198,8 @@ class Chain:
         # @todo: session id to separate conversations
         chain = (
             RunnablePassthrough.assign(
-                    global_store=lambda input: Chain.format_docs(input["global_store"]),
-                    session_store=lambda input: Chain.format_docs(input["session_store"]),
+                    global_store=lambda input: Agent.format_docs(input["global_store"]),
+                    session_store=lambda input: Agent.format_docs(input["session_store"]),
                     history=lambda input: history,
                     today=lambda input: today,
                     agent=lambda input: agent_info

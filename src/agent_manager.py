@@ -2,7 +2,7 @@
 Agent-Assembly-Line
 """
 
-from src.chain import Chain
+from src.agent import Agent
 
 class AgentManager:
     """
@@ -13,7 +13,7 @@ class AgentManager:
 
     def select_agent(self, agent_name, debug=False):
         if self.current_agent is None or self.current_agent.agent_name != agent_name:
-            self.current_agent = Chain(agent_name, debug)
+            self.current_agent = Agent(agent_name, debug)
         return self.current_agent
 
     def get_agent(self):

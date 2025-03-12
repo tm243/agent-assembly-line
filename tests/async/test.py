@@ -6,11 +6,11 @@ import unittest, aiounittest
 import tempfile
 import os
 import shutil
-from src.chain import Chain
+from src.agent import Agent
 from src.memory_assistant import MemoryStrategy
 from unittest.mock import patch, Mock
 
-class TestChain(aiounittest.AsyncTestCase):
+class TestAgent(aiounittest.AsyncTestCase):
 
     def _createSandbox(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -42,65 +42,65 @@ class TestChain(aiounittest.AsyncTestCase):
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
     @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
     async def test_question_test_agent(self, mock_summarize_memory, mock):
-        chain = Chain("test-agent")
+        agent = Agent("test-agent")
 
         mock_summarize_memory.assert_called_once()
 
         question = "How many people live in the country? Short answer."
-        text = chain.run(question)
+        text = agent.run(question)
         self.assertIn("300,000", text, "Number of citizen")
 
         mock.assert_called_once_with(question, text)
 
-        text = chain.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
+        text = agent.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
         self.assertIn("I cannot answer this question", text, "Number of citizen, without RAG")
 
         question = "What is the name of the country? Short answer."
-        text = chain.run(question)
+        text = agent.run(question)
         self.assertIn("Aethelland", text, "Name of country")
 
-        text = chain.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
+        text = agent.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
         self.assertIn("I cannot answer this question", text, "Name of country, without RAG")
 
-        await chain.cleanup()
-        chain.closeModels()
+        await agent.cleanup()
+        agent.closeModels()
 
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
     @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
     async def test_question_stream(self, mock_summarize_memory, mock_add_messages):
-        chain = Chain("test-agent")
+        agent = Agent("test-agent")
 
         mock_summarize_memory.assert_called_once()
 
         question = "How many people live in the country? Short answer."
         text = ""
-        async for chunk in chain.stream(question):
+        async for chunk in agent.stream(question):
             text += chunk
         self.assertIn("300,000", text, "Number of citizen")
 
         mock_add_messages.assert_called_once_with(question, text)
 
-        await chain.cleanup()
-        await chain.aCloseModels()
-        chain.closeModels()
+        await agent.cleanup()
+        await agent.aCloseModels()
+        agent.closeModels()
 
     @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
     @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
     async def test_memory(self, mock_summarize_memory, mock):
-        chain = Chain("test-agent")
-        chain.memory_strategy = MemoryStrategy.SUMMARY
+        agent = Agent("test-agent")
+        agent.memory_strategy = MemoryStrategy.SUMMARY
         question = "Are dinosaurs in the country? Short answer."
 
         mock_summarize_memory.assert_called_once()
 
-        text = chain.run(question)
-        # chain.save_memory()
-        # stored_memory = chain.load_memory()
+        text = agent.run(question)
+        # agent.save_memory()
+        # stored_memory = agent.load_memory()
         # self.assertIn("dinosaurs", stored_memory, "Dinosaurs in country")
         mock.assert_called_once_with(question, text)
 
-        await chain.cleanup()
-        chain.closeModels()
+        await agent.cleanup()
+        agent.closeModels()
 
     # @todo add test "agent not found"
     # @todo add test "more than 10 documents"

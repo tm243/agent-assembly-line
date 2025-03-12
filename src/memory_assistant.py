@@ -86,7 +86,7 @@ class MemoryAssistant():
         )
         if self.config.debug:
             print(f"MemoryAssistant: Trimmed messages from {l_before} to {len(self.messages)}")
-            print(f"MemoryAssistant: Messages: {self.messages[0]} {self.messages[9]}")
+            print(f"MemoryAssistant: Messages: 0:{self.messages[0].content[0:10]}.. 9:{self.messages[9].content[0:10]}")
 
     def save_messages(self, file_path):
         try:
