@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, MenuItem, Select, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
 import Chat from './Chat';
 import PulsingDot from './PulsingDot';
-import { sendMessage, Message, fetchInfo, selectAgent, fetchDataSources, fetchHistory, streamMessage } from '../services/ApiService';
+import { sendMessage, Message, fetchInfo, selectAgent, fetchAvailableAgents, fetchHistory, streamMessage } from '../services/ApiService';
 import MemoryDisplay from './MemoryDisplay';
 import FileUploadButton from './FileUploadButton';
 
@@ -27,8 +27,8 @@ const MainLayout = () => {
   const [savingInterval, setSavingInterval] = useState<number>(0);
   const [autoSaveMessageCount, setAutoSaveMessageCount] = useState<number>(0);
   const [memoryPrompt, setMemoryPrompt] = useState<string>('');
-  const [availableDataSources, setAvailableDataSources] = useState<string[]>([]);
-  const [selectedDataSource, setSelectedDataSource] = useState<string>('');
+  const [availableAgents, setAvailableAgents] = useState<string[]>([]);
+  const [selectedAgent, setSelectedAgent] = useState<string>('');
   const [userUploadedFiles, setUserUploadedFiles] = useState<string>('');
   const [userAddedUrls, setUserAddedUrls] = useState<string>('');
 
@@ -59,7 +59,7 @@ const MainLayout = () => {
   useEffect(() => {
     const loadDefaultAgent = async () => {
         try {
-          setSelectedDataSource(defaultAgent);
+          setSelectedAgent(defaultAgent);
           await selectAgent(defaultAgent);
           loadInfo();
           loadHistory();
@@ -68,12 +68,12 @@ const MainLayout = () => {
         }
     };
 
-    const loadAvailableDataSources = async () => {
+    const loadAvailableAgents = async () => {
         try {
-          const sources = await fetchDataSources();
-          setAvailableDataSources(sources);
+          const agents = await fetchAvailableAgents();
+          setAvailableAgents(agents);
         } catch (error) {
-          console.error('Failed to fetch data sources:', error);
+          console.error('Failed to fetch agents:', error);
         }
       };
 
@@ -87,7 +87,7 @@ const MainLayout = () => {
     };
 
     loadDefaultAgent();
-    loadAvailableDataSources();
+    loadAvailableAgents();
   }, []);
 
   const handleSendMessage = async () => {
@@ -152,8 +152,8 @@ const MainLayout = () => {
     }
   };
 
-  const handleDataSourceChange = async (event: SelectChangeEvent<string>) => {
-    const newDataSource = event.target.value as string;
+  const handleAgentChange = async (event: SelectChangeEvent<string>) => {
+    const newAgent = event.target.value as string;
 
     setName('');
     setDescription('');
@@ -163,9 +163,9 @@ const MainLayout = () => {
     setUserUploadedFiles('');
     setUserAddedUrls('');
 
-    setSelectedDataSource(newDataSource);
+    setSelectedAgent(newAgent);
     try {
-      await selectAgent(newDataSource);
+      await selectAgent(newAgent);
       const fetchedInfo = await fetchInfo();
       setName(fetchedInfo.name);
       setDescription(fetchedInfo.description);
@@ -211,14 +211,14 @@ const MainLayout = () => {
       <Box flex={1} display="flex" flexDirection="column" borderRight="1px solid #ccc">
           <Box flex={1} p={2}>
             <FormControl fullWidth size='small'>
-                <InputLabel>Data Source</InputLabel>
+                <InputLabel>Agent</InputLabel>
                 <Select
-                    value={selectedDataSource}
-                    onChange={handleDataSourceChange}
+                    value={selectedAgent}
+                    onChange={handleAgentChange}
                 >
-                    {availableDataSources.map((source) => (
-                    <MenuItem key={source} value={source}>
-                        {source}
+                    {availableAgents.map((agent) => (
+                    <MenuItem key={agent} value={agent}>
+                        {agent}
                     </MenuItem>
                     ))}
                 </Select>

@@ -88,10 +88,10 @@ export const fetchInfo = async (): Promise<Info> => {
   return data;
 };
 
-export const fetchDataSources = async (): Promise<string[]> => {
+export const fetchAvailableAgents = async (): Promise<string[]> => {
   const response = await fetch(`${API_URL}/agents`);
   if (!response.ok) {
-    throw new Error('Failed to fetch data sources');
+    throw new Error('Failed to fetch available agents');
   }
   const data = await response.json();
   return data;
