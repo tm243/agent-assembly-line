@@ -4,11 +4,12 @@ Agent-Assembly-Line
 
 import os
 import yaml
-from typing import Optional
+from typing import Optional, Dict, Any
 
 class Config:
     doc: str = ""
     url: str = ""
+    inline_content: str = ""
     wait_class_name: str = ""
     prompt_template: str = ""
     model_name: str = ""
@@ -20,12 +21,16 @@ class Config:
     ollama_keep_alive: bool = False
     llm_type: str = ""
 
-    def __init__(self, agent_name: Optional[str] = None, debug: bool = False):
+    def __init__(self, agent_name: Optional[str] = None, config_dict: Optional[Dict[str, Any]] = None, debug: bool = False):
         self.debug = debug
         if agent_name:
             if self.debug:
                 print(f"Loading configuration for agent: {agent_name}")
             self.load_conf_file(agent_name)
+        elif config_dict:
+            if self.debug:
+                print("Loading configuration from dictionary")
+            self.load_conf_dict(config_dict)
 
     def load_conf_file(self, agent_name: str):
         agents_path = self._get_agents_path(agent_name)
@@ -35,13 +40,20 @@ class Config:
             config = yaml.safe_load(f)
         
         self._validate_config(config)
-        
+        self._update_config(config, agents_path)
+
+    def load_conf_dict(self, config: Dict[str, Any]):
+        self._validate_config(config)
+        self._update_config(config)
+
+    def _update_config(self, config: Dict[str, Any], agents_path: Optional[str] = None):
         self.name = config["name"]
         self.description = config["description"]
-        self.doc = os.path.join(agents_path, config["data"].get("file", ""))
+        self.doc = os.path.join(agents_path, config["data"].get("file", "")) if agents_path else config["data"].get("file", "")
         self.url = config["data"].get("url", "")
+        self.inline_content = config["data"].get("inline", "")
         self.wait_class_name = config["data"].get("wait-class-name", "")
-        self.prompt_template = os.path.join(agents_path, config["prompt"]["template"])
+        self.prompt_template = os.path.join(agents_path, config["prompt"]["template"]) if agents_path else config["prompt"]["template"]
         self.model_identifier = config["llm"]["model-identifier"]
         self.embeddings = config["llm"]["embeddings"]
         self.memory_prompt = config.get("memory-prompt", "Please summarize the conversation.")
