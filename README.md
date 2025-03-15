@@ -37,6 +37,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+It works with Python 3.9.6
+
 ## Install Service
 
 ```console
