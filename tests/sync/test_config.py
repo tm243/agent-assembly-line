@@ -29,7 +29,7 @@ class TestConfig(unittest.TestCase):
             },
             "llm": {
                 "model-name": "test_model",
-                "model-identifier": "test_identifier",
+                "model-identifier": "ollama:test_model",
                 "embeddings": "test_embeddings"
             },
             "memory-prompt": "Please summarize the conversation.",

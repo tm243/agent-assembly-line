@@ -18,12 +18,13 @@ class Config:
     debug: bool = False
     timeout: int = 120
     ollama_keep_alive: bool = False
+    llm_type: str = ""
 
     def __init__(self, agent_name: Optional[str] = None, debug: bool = False):
         self.debug = debug
-        if self.debug:
-            print(f"Loading configuration for agent: {agent_name}")
         if agent_name:
+            if self.debug:
+                print(f"Loading configuration for agent: {agent_name}")
             self.load_conf_file(agent_name)
 
     def load_conf_file(self, agent_name: str):
@@ -41,13 +42,14 @@ class Config:
         self.url = config["data"].get("url", "")
         self.wait_class_name = config["data"].get("wait-class-name", "")
         self.prompt_template = os.path.join(agents_path, config["prompt"]["template"])
-        self.model_name = config["llm"]["model-name"]
         self.model_identifier = config["llm"]["model-identifier"]
         self.embeddings = config["llm"]["embeddings"]
         self.memory_prompt = config.get("memory-prompt", "Please summarize the conversation.")
         self.use_memory = config.get("use-memory", False)
         self.timeout = config.get("timeout", 120)
         self.ollama_keep_alive = config.get("ollama-keep-alive", False)
+
+        self.llm_type, self.model_name = Config.parse_model_identifier(self.model_identifier)
 
     def _get_agents_path(self, agent_name: str) -> str:
         user_agents_path = os.getenv('USER_AGENTS_PATH', os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{agent_name}"))
@@ -71,6 +73,18 @@ class Config:
         for field, field_type in required_fields.items():
             if field not in config or not isinstance(config[field], field_type):
                 raise ValueError(f"Missing or invalid required field: {field}")
+
+    @staticmethod
+    def parse_model_identifier(model_identifier: str):
+        """
+        Schema: ollama:gemma2:latest, openai:gpt-3.5-turbo
+        """
+        parts = model_identifier.split(":")
+        if len(parts) < 2:
+            raise ValueError(f"Invalid LLM specification: {model_identifier}")
+        llm_type = parts[0]
+        model_name = ":".join(parts[1:])
+        return llm_type, model_name
 
     @property
     def memory_path(self) -> str:
