@@ -64,12 +64,22 @@ class MemoryAssistant():
 
     def summarize_memory(self):
         history = "\n".join([message.content for message in self.messages])
-        asyncio.create_task(self._invoke_model(history))
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._a_invoke_model(history))
+        except RuntimeError:
+            # no event loop found: running in a non-async context
+            self._invoke_model(history)
         if self.config.debug:
             print("MemoryAssistant: Summary memory task created")
 
-    async def _invoke_model(self, history):
+    async def _a_invoke_model(self, history):
         self.summary_memory = await self.model.ainvoke(self.config.memory_prompt + history)
+        if self.config.debug:
+            print("MemoryAssistant: Summary memory done")
+
+    def _invoke_model(self, history):
+        self.summary_memory = self.model.invoke(self.config.memory_prompt + history)
         if self.config.debug:
             print("MemoryAssistant: Summary memory done")
 
@@ -84,7 +94,7 @@ class MemoryAssistant():
             include_system=True,
             allow_partial=False,
         )
-        if self.config.debug:
+        if self.config.debug and len(self.messages) > 9:
             print(f"MemoryAssistant: Trimmed messages from {l_before} to {len(self.messages)}")
             print(f"MemoryAssistant: Messages: 0:{self.messages[0].content[0:10]}.. 9:{self.messages[9].content[0:10]}")
 
@@ -168,3 +178,28 @@ class MemoryAssistant():
         self.summary_memory = ""
         if self.config.debug:
             print("MemoryAssistant: Messages saved and cleared")
+
+
+class NoMemory():
+
+    def __init__(self, strategy=MemoryStrategy.NO_MEMORY, model=None, config=None):
+        self.config = config
+        self.messages = []
+
+        if config and config.debug:
+            print("NoMemory: Initialized")
+
+    def add_message(self, prompt, answer):
+        pass
+
+    def load_messages(self, file_path):
+        pass
+
+    def save_messages(self, file_path):
+        pass
+
+    def stopSaving(self):
+        pass
+
+    def cleanup(self):
+        pass
