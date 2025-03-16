@@ -7,26 +7,38 @@ import yaml
 from typing import Optional, Dict, Any
 
 class Config:
+    """
+    Class to hold the configuration for the agent.
+    Configuration can be loaded from a file or a dictionary.
+    """
+
+    # data
     doc: str = ""
     url: str = ""
     inline_content: str = ""
-    wait_class_name: str = ""
     prompt_template: str = ""
+    inline_rag_templates: str = ""
+
+    # model
     model_name: str = ""
     model_identifier: str = ""
     embeddings: str = ""
+
+    # memory
     memory_prompt: str = ""
+
+    # misc
     debug: bool = False
     timeout: int = 120
     ollama_keep_alive: bool = False
     llm_type: str = ""
 
-    def __init__(self, agent_name: Optional[str] = None, config_dict: Optional[Dict[str, Any]] = None, debug: bool = False):
+    def __init__(self, load_agent_conf: Optional[str] = None, config_dict: Optional[Dict[str, Any]] = None, debug: bool = False):
         self.debug = debug
-        if agent_name:
+        if load_agent_conf:
             if self.debug:
-                print(f"Loading configuration for agent: {agent_name}")
-            self.load_conf_file(agent_name)
+                print(f"Loading configuration for agent: {load_agent_conf}")
+            self.load_conf_file(load_agent_conf)
         elif config_dict:
             if self.debug:
                 print("Loading configuration from dictionary")
@@ -48,12 +60,13 @@ class Config:
 
     def _update_config(self, config: Dict[str, Any], agents_path: Optional[str] = None):
         self.name = config["name"]
-        self.description = config["description"]
-        self.doc = os.path.join(agents_path, config["data"].get("file", "")) if agents_path else config["data"].get("file", "")
-        self.url = config["data"].get("url", "")
-        self.inline_content = config["data"].get("inline", "")
-        self.wait_class_name = config["data"].get("wait-class-name", "")
-        self.prompt_template = os.path.join(agents_path, config["prompt"]["template"]) if agents_path else config["prompt"]["template"]
+        self.description = config.get("description", "")
+        if "data" in config.keys():
+            self.doc = os.path.join(agents_path, config.get("data", {}).get("file", "")) if agents_path else config.get("data", {}).get("file", "")
+            self.url = config.get("data", {}).get("url", "")
+            self.inline_content = config.get("data", {}).get("inline", "")
+        self.prompt_template = os.path.join(agents_path, config.get("prompt", {}).get("template", "")) if agents_path else config.get("prompt", {}).get("template", "")
+        self.inline_rag_templates = config.get("prompt", {}).get("inline_rag_templates", "")  # Set inline RAG templates from prompt section
         self.model_identifier = config["llm"]["model-identifier"]
         self.embeddings = config["llm"]["embeddings"]
         self.memory_prompt = config.get("memory-prompt", "Please summarize the conversation.")
@@ -77,8 +90,6 @@ class Config:
     def _validate_config(self, config: dict):
         required_fields = {
             "name": str,
-            "description": str,
-            "data": dict,
             "prompt": dict,
             "llm": dict
         }
@@ -100,6 +111,10 @@ class Config:
 
     @property
     def memory_path(self) -> str:
+        """
+        Get the path to the memory/history file for the agent.
+        @todo standardize memory vs history terminology
+        """
         user_memory_path = os.getenv('USER_MEMORY_PATH', os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{self.name}/history.json"))
         local_memory_path = os.getenv('LOCAL_MEMORY_PATH', f"agents/{self.name}/history.json")
 
@@ -116,7 +131,8 @@ class Config:
     def cleanup(self):
         self.doc = None
         self.url = None
-        self.wait_class_name = None
+        self.inline_content = None
+        self.inline_rag_templates = None
         self.prompt_template = None
         self.model_name = None
         self.model_identifier = None
