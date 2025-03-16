@@ -15,3 +15,10 @@ class TextLoader(DataLoader):
             return [Document(page_content=doc.page_content, metadata={"source": "text", "file_path": file_path}) for doc in documents if doc.page_content.strip()]
         except Exception as e:
             print("Text loading failed:", e)
+
+class InlineTextLoader(DataLoader):
+    def load_data(self, content: str) -> List[Document]:
+        try:
+            return [Document(page_content=content, metadata={"source": "text", "type": "inline"})]
+        except Exception as e:
+            print("Text loading failed:", e)

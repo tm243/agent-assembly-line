@@ -7,7 +7,7 @@ from .base_loader import DataLoader
 from .web_loader import WebLoader
 from .rss_feed_loader import RSSFeedLoader
 from .json_loader import JSONLoader
-from .text_loader import TextLoader
+from .text_loader import TextLoader, InlineTextLoader
 from .pdf_loader import PDFLoader
 from .rest_api_loader import RESTAPILoader
 
@@ -26,6 +26,8 @@ class DataLoaderFactory:
             return PDFLoader()
         elif source_type == "rest_api":
             return RESTAPILoader()
+        elif source_type == "inline_text":
+            return InlineTextLoader()
         else:
             raise ValueError(f"Unsupported source type: {source_type}")
 
@@ -78,3 +80,7 @@ class DataLoaderFactory:
             return DataLoaderFactory.guess_file_type(config.doc), config.doc
         elif config.url:
             return DataLoaderFactory.guess_url_type(config.url), config.url
+        elif config.inline_content:
+            return 'inline_text', config.inline_content
+        else:
+            return None, None

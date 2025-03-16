@@ -3,7 +3,8 @@ Agent-Assembly-Line
 """
 
 from src.config import Config
-from src.memory_assistant import *
+from src.data_loaders.diff_loader import GitDiffLoader
+from src.memory_assistant import MemoryAssistant, MemoryStrategy, NoMemory
 from src.data_loaders.data_loader_factory import DataLoaderFactory
 from src.exceptions import DataLoadError, EmptyDataError
 from src.utils.inspectable_runnable import InspectableRunnable
@@ -26,24 +27,35 @@ class Agent:
 
     user_uploaded_files = []
     user_added_urls = []
+    memory_assistant = NoMemory()
+    inline_context = ""
 
-    def __init__(self, agent_name, debug = False, config = None):
-        self.agent_name = agent_name
+    def __init__(self, agent_name = None, debug = False, config = None):
+        if agent_name:
+            self.agent_name = agent_name
         if not config:
             self.config = Config(agent_name, debug)
+        else:
+            self.config = config
+        if not agent_name:
+            self.agent_name = self.config.name
         self.debug_mode = debug
-
-        with open(self.config.prompt_template, "r") as rag_template_file:
-            self.RAG_TEMPLATE = rag_template_file.read()
+        if self.config.prompt_template:
+            with open(self.config.prompt_template, "r") as rag_template_file:
+                self.RAG_TEMPLATE = rag_template_file.read()
+        if self.config.inline_rag_templates:
+            self.RAG_TEMPLATE = self.config.inline_rag_templates
 
         self.model, self.embeddings = LLMFactory.create_llm_and_embeddings(self.config)
 
         self.agent_vectorstore = self.load_data(self.config)
         self.user_vectorstore = Chroma("uploaded-data",self.embeddings)
         self.memory_strategy = MemoryStrategy.SUMMARY
-        self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=self.config)
-        self.memory_assistant.load_messages(self.config.memory_path)
-
+        if self.config.use_memory:
+            self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=self.config)
+            self.memory_assistant.load_messages(self.config.memory_path)
+        else:
+            self.memory_assistant = NoMemory(config=self.config)
         self.stats = {}
 
     async def cleanup(self):
@@ -63,16 +75,19 @@ class Agent:
 
     def load_data(self, config) -> Chroma:
         source_type, source_path = DataLoaderFactory.guess_source_type(config)
-        loader = DataLoaderFactory.get_loader(source_type)
-        data = loader.load_data(source_path)
-        if data:
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-            all_splits = text_splitter.split_documents(data)
+        if source_type and source_path:
+            loader = DataLoaderFactory.get_loader(source_type)
+            data = loader.load_data(source_path)
+            if data:
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+                all_splits = text_splitter.split_documents(data)
 
-            self.agent_vectorstore = Chroma.from_documents(documents=all_splits, embedding=self.embeddings)
+                self.agent_vectorstore = Chroma.from_documents(documents=all_splits, embedding=self.embeddings)
+            else:
+                self.agent_vectorstore = Chroma("context", self.embeddings)
+            return self.agent_vectorstore
         else:
-            self.agent_vectorstore = Chroma("context", self.embeddings)
-        return self.agent_vectorstore
+            return Chroma("context", self.embeddings)
 
     def add_file(self, upload_directory, filename):
         """
@@ -133,6 +148,28 @@ class Agent:
             self.user_added_urls.append(url)
             print(f"URL added: {url}, {size} characters")
             return summary, size
+
+    def add_diff(self, diff_text):
+        """
+        Adds a git diff to the inline context
+        """
+        loader = GitDiffLoader('.')
+        documents = loader.load_data(diff_text)
+        if documents:
+            try:
+                for doc in documents:
+                    self.inline_context += doc.page_content + "\n"
+            except Exception as e:
+                print("Adding diff failed:", e)
+                raise DataLoadError(f"Adding diff failed: {e}")
+        print(self.inline_context)
+
+    def add_inline_text(self, text):
+        """
+        Adds inline text to the inline context.
+        Use this to add text directly to the context, doesn't use a vector store.
+        """
+        self.inline_context += text + "\n"
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
@@ -200,6 +237,7 @@ class Agent:
             RunnablePassthrough.assign(
                     global_store=lambda input: Agent.format_docs(input["global_store"]),
                     session_store=lambda input: Agent.format_docs(input["session_store"]),
+                    context=lambda input: self.inline_context,
                     history=lambda input: history,
                     today=lambda input: today,
                     agent=lambda input: agent_info
