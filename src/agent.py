@@ -24,6 +24,24 @@ from langchain_core.output_parsers import StrOutputParser
 from src.llm_factory import LLMFactory
 
 class Agent:
+    """
+    Agent
+    This class creates an agent based on the configuration provided in a YAML file or a dictionary.
+    The agent can add files, URLs, or inline text to its context and run with a given prompt.
+
+    The agent manages data in three ways:
+    1. agent_vectorstore: Loaded from the data specified in the configuration.
+    2. user_vectorstore: Stores user-uploaded files and URLs.
+    3. inline_context: Stores text or diffs added directly, which will be included in the LLM's context
+       in full length, limited by the LLM's maximum input length.
+
+    Files and URLs specified in the configuration are added to the agent's vector store.
+    Methods:
+    - add_file(): Adds files to the user vector store.
+    - add_url(): Adds URLs to the user vector store.
+    - add_inline_text(): Adds text directly to the context without using a vector store.
+    - add_diff(): Adds a git diff to the inline context.
+    """
 
     user_uploaded_files = []
     user_added_urls = []
