@@ -180,7 +180,6 @@ class Agent:
             except Exception as e:
                 print("Adding diff failed:", e)
                 raise DataLoadError(f"Adding diff failed: {e}")
-        print(self.inline_context)
 
     def add_inline_text(self, text):
         """
