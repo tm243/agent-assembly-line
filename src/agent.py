@@ -189,6 +189,13 @@ class Agent:
         """
         self.inline_context += text + "\n"
 
+    def replace_inline_text(self, text):
+        """
+        Replaces inline text to the inline context.
+        Use this to add text directly to the context, doesn't use a vector store.
+        """
+        self.inline_context = text + "\n"
+
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
 
