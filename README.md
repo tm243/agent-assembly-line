@@ -1,10 +1,10 @@
 # Agent-Assembly-Line
 
-[Build AI agents in Python. A library for developers.](#get-it-to-run)
+[Build AI agents in Python. A library for developers.](#simple-api)
 
 Agent-Assembly-Line, built on top of Langchain, offers components that simplify the setup of agents and multi-agent chains.
 
-It supports:
+Agent-Assembly-Line supports:
 - Task based Agents (Functional Agents)
 - Conversational Agents
 - Local memory
@@ -14,7 +14,7 @@ It supports:
 - Streaming mode and regular runs
 - Context
 
-Agent-Assembly-Line comes with examples, a demo chat app and tests.
+Agent-Assembly-Line comes with examples such as [Semantic Unittests](tests/sync/test_text_validator.py), [Diff Analysis](examples/diff_analysis.py), and more; a demo chat app and tests.
 
 ## Table of Content
 
