@@ -130,7 +130,7 @@ class Agent:
         finally:
             self.user_uploaded_files.append(filename)
 
-    def add_url(self, url):
+    def add_url(self, url, use_inline_context = False, wait_time=10):
         """
         user added url
         """
@@ -140,7 +140,7 @@ class Agent:
             from src.data_loaders.web_loader import WebLoader
             source_type = DataLoaderFactory.guess_url_type(url)
             loader = DataLoaderFactory.get_loader(source_type)
-            data = loader.load_data(url)
+            data = loader.load_data(url, wait_time)
 
             if self.config.debug:
                 with open("website_debug.txt", "w") as f:
@@ -151,9 +151,12 @@ class Agent:
                     f.write(loader.header_text_pairs)
 
             if data:
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-                all_splits = text_splitter.split_documents(data)
-                self.user_vectorstore.add_documents(all_splits)
+                if use_inline_context:
+                    self.inline_context += data[0].page_content + "\n"
+                else:
+                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+                    all_splits = text_splitter.split_documents(data)
+                    self.user_vectorstore.add_documents(all_splits)
             else:
                 raise EmptyDataError(url)
         except Exception as e:
