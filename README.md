@@ -5,31 +5,40 @@
 Agent-Assembly-Line, built on top of Langchain, offers components that simplify the setup of agents and multi-agent chains.
 
 It supports:
+- Task based Agents (Functional Agents)
+- Conversational Agents
 - Local memory
-- Local documents (RAG)
-- Websites, RSS, JSON, PDF
+- RAG for Local documents or remote endpoints
+- Websites, RSS, JSON, PDF, ..
 - Local LLMs as well as cloud-based LLMs: Ollama and ChatGPT
 - Streaming mode and regular runs
 - Context
+
+Agent-Assembly-Line comes with examples, a demo chat app and tests.
 
 ## Table of Content
 
 - [Agent-Assembly-Line](#agent-assembly-line)
 - [Getting Started](#getting-started)
-    - [Build](#build)
+    - [Install Python Env](#install-python-environment)
     - [Setup an LLM](#setup-an-llm)
     - [Install Service](#install-service)
-    - [Test](#test)
+    - [Tests](#tests)
     - [Build and Run the Demo App](#build-and-run-the-demo-app)
-
 - [Usage](#usage)
+    - [Simple API](#simple-api)
+    - [Micros](#micros)
+        - [Website Summary](#website-summary)
+        - [Semantic Unittests](#semantic-unittests)
+        - [Diff Analysis](#diff-analysis)
+        - [Text Summary](#text-summary)
 - [Contributing](#contributing)
 - [Reporting Issues](#reporting-issues)
 - [License](#license)
 
 # Getting Started
 
-## Build
+## Install Python Environment
 
 ```console
 /usr/bin/python3 -m venv .venv
@@ -50,7 +59,15 @@ systemctl is-enabled agent-assembly-line.service
 journalctl -u agent-assembly-line.service
 ```
 
-## Test
+## Tests
+
+Run all tests:
+
+```console
+make test
+```
+
+or
 
 ```console
 python -m unittest tests/test.py
@@ -61,12 +78,9 @@ just one test:
 python -m unittest tests.async.test_memory.TestMemory.test_save_messages
 ```
 
-all tests:
-```console
-make test
-```
-
 ## Build and Run the Demo App
+
+The demo app provides a UI that talks to the REST API and can handle chat-based conversations, functional agents, memory and summaries, file upload and urls.
 
 ```
 cd app/
@@ -128,16 +142,100 @@ export OPENAI_API_KEY=<your key here>
 
 # Usage
 
+## Simple API
+
+Create an agent:
+
 ```python
 agent = Agent("aethelland-demo")
 question = "How many people live in the country?"
 text = agent.run(question)
 ```
 
-For further understanding of how to use Agent-Assembly-Line, the [tests](tests/async/test.py) can be read, as well as the [demo app](app/).
+Agent objects can either read its configuration from a YAML config file like the example, or use a dictionary:
+
+```Python
+    config = Config()
+    config.load_conf_dict({
+        "name": "my-demo",
+        "llm": {
+            "model-identifier": "ollama:gemma:latest",
+            "embeddings": "nomic-embed-text"
+        },
+    })
+    agent = Agent(config=config)
+```
+
+The agent supports both streaming and synchronous runs and can store a history, which is useful for chat-based applications. Texts from documents, URLs, or strings can be stored in vectorstores or used as inline context. Inline context directly provides the text to the LLM prompt but is limited by the LLM's context window.
+
+## Micros
+
+Micros are functional agents that serve 1 particular job, and can be used in pipes or chains.
+There are currently agents for analyzing diffs, semantic unittest validation, summarizing text and handling websites. 
+
+### Website Summary
+
+```Python
+agent = WebsiteSummaryAgent(url)
+summary = agent.run()
+```
+
+### Semantic Unittests
+
+```Python
+class TestTextValidator(SemanticTestCase):
+    def test_semantic(self):
+        self.assertSemanticallyEqual("Blue is the sky.", "The sky is blue.")
+```
+
+### Diff Analysis
+
+This example first creates a detailed textual summary, and in the second step it creates a shorter summary, which can be used e.g. in commit messages.
+
+```Python
+agent = DiffDetailsAgent(diff_text)
+detailed_answer = agent.run()
+
+sum_agent = DiffSumAgent(detailed_answer)
+sum_answer = sum_agent.run()
+```
+
+### Text Summary
+
+Generic text summarization. You can choose local LLMs or cloud (CHatGPT).
+
+```Python
+agent = SumAgent(text, mode='local')
+result = agent.run()
+```
+
+For further understanding of how to use Agent-Assembly-Line, the [tests](tests/async/test.py) can be read, as well as the [demo app](app/) and [examples](examples/).
 
 The demo app also shows how the library can be used in a chat application.
 See also [Build and run the demo app](#build-and-run-the-demo-app).
+
+## Multi-Agent Chains
+
+Micros can be used in combination, to build a [complex..]
+
+Example:
+
+```console
+git diff --cached | examples/diff_analysis.py | examples/summarize_text.py
+```
+
+Or in Python:
+
+```Python
+agent = DiffDetailsAgent(diff_text)
+detailed_answer = agent.run()
+
+sum_agent = DiffSumAgent(detailed_answer)
+sum_answer = sum_agent.run("Please summarize these code changes in 2-3 sentences.  The context is only for the bigger picture.")
+
+sum_agent = DiffSumAgent(sum_answer)
+sum_answer = sum_agent.run()
+```
 
 # Contributing
 
