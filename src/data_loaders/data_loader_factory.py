@@ -50,7 +50,7 @@ class DataLoaderFactory:
             return 'rss'
         elif url.endswith(".pdf"):
             return 'pdf'
-        elif url.endswith(".txt"):
+        elif url.endswith(".txt") or url.endswith(".md"):
             return 'text'
         elif url.endswith(".html"):
             return 'web'
