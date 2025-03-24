@@ -1,11 +1,12 @@
-#!.venv/bin/python
+#!/usr/bin/env python3
 """
 Agent-Assembly-Line
 """
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from micros.choose_agent_agent import ChooseAgentAgent
+from micros.clarity_agent import ClarityAgent
+from micros.yes_no_agent import YesNoAgent
 
 if sys.stdin.isatty():
     if len(sys.argv) != 2:
@@ -18,8 +19,12 @@ else:
     text = sys.stdin.read()
 
 
-agent = ChooseAgentAgent(text, mode='local')
+agent = ClarityAgent(text, mode='local')
 result = agent.run()
 
 print(result)
 
+agent2 = YesNoAgent(result)
+result2 = agent2.run()
+
+print("Result:", result2, "Bool: ", agent2.toBool(result2))

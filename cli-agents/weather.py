@@ -1,4 +1,4 @@
-#!.venv/bin/python
+#!/usr/bin/env python3
 """
 Agent-Assembly-Line
 """

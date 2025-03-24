@@ -1,4 +1,4 @@
-#!.venv/bin/python
+#!/usr/bin/env python3
 """
 Agent-Assembly-Line
 """
@@ -9,9 +9,9 @@ from micros.sum_agent import SumAgent
 
 if sys.stdin.isatty():
     if len(sys.argv) != 2:
-        print("Usage: python very_short_summary.py <text>")
-        print("       echo <text> | very_short_summary.py")
-        print("       cat <text_file> | very_short_summary.py")
+        print("Usage: python summarize_text.py <text>")
+        print("       echo <text> | summarize_text.py")
+        print("       cat <text_file> | summarize_text.py")
         sys.exit(1)
     text = sys.argv[1]
 else:
@@ -19,6 +19,6 @@ else:
 
 
 agent = SumAgent(text, mode='local')
-result = agent.run("Summarize this text in just 3 words or less")
+result = agent.run()
 
 print(result)
