@@ -2,10 +2,10 @@
 Agent-Assembly-Line
 """
 
-from src.agent import Agent
-from src.config import Config
-from src.data_loaders.xml_remote_loader import XmlRemoteLoader
-from src.middleware.fmi_forecast_parser import FmiForecastParser
+from agent_assembly_line.agent import Agent
+from agent_assembly_line.config import Config
+from agent_assembly_line.data_loaders.xml_remote_loader import XmlRemoteLoader
+from agent_assembly_line.middleware.fmi_forecast_parser import FmiForecastParser
 
 class FmiWeatherAgent(Agent):
     """

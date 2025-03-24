@@ -6,8 +6,8 @@ import aiounittest
 import tempfile
 import os
 import shutil
-from src.agent_manager import AgentManager
-from src.memory_assistant import MemoryStrategy
+from agent_assembly_line.agent_manager import AgentManager
+from agent_assembly_line.memory_assistant import MemoryStrategy
 from unittest.mock import patch, Mock
 
 class TestAgentManager(aiounittest.AsyncTestCase):
@@ -41,7 +41,7 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         self.agent_manager.cleanup()
         self._deleteSandbox()
 
-    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
     async def test_select_agent(self, mock_summarize_memory):
         agent = self.agent_manager.select_agent("test-agent", debug=False)
         mock_summarize_memory.assert_called_once()
@@ -50,8 +50,8 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         agent.closeModels()
         self.agent_manager.cleanup()
 
-    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
     async def test_question(self, mock_summarize_memory, mock_add_message):
         self.agent_manager.select_agent("test-agent", debug=False)
         mock_summarize_memory.assert_called_once()
@@ -75,8 +75,8 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         await agent.cleanup()
         agent.closeModels()
 
-    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
     async def test_memory(self, mock_summarize_memory, mock):
         self.agent_manager.select_agent("test-agent", debug=False)
         mock_summarize_memory.assert_called_once()

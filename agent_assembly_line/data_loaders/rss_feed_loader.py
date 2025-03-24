@@ -4,7 +4,7 @@ Agent-Assembly-Line
 
 from typing import Dict, List
 from .base_loader import DataLoader
-from src.models.document import Document
+from agent_assembly_line.models.document import Document
 from langchain_community.document_loaders import RSSFeedLoader as LangchainRSSFeedLoader
 
 class RSSFeedLoader(DataLoader):

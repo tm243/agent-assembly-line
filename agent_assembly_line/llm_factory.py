@@ -3,7 +3,7 @@ Agent-Assembly-Line
 """
 
 import os
-from src.config import Config
+from agent_assembly_line.config import Config
 
 class LLMFactory:
     @staticmethod

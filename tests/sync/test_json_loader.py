@@ -4,8 +4,8 @@ Agent-Assembly-Line
 
 import unittest
 from unittest.mock import patch, Mock
-from src.data_loaders.json_loader import JSONLoader
-from src.models.document import Document
+from agent_assembly_line.data_loaders.json_loader import JSONLoader
+from agent_assembly_line.models.document import Document
 
 class TestJSONLoader(unittest.TestCase):
     @patch('requests.get')

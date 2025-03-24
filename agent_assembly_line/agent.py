@@ -2,12 +2,13 @@
 Agent-Assembly-Line
 """
 
-from src.config import Config
-from src.data_loaders.diff_loader import GitDiffLoader
-from src.memory_assistant import MemoryAssistant, MemoryStrategy, NoMemory
-from src.data_loaders.data_loader_factory import DataLoaderFactory
-from src.exceptions import DataLoadError, EmptyDataError
-from src.utils.inspectable_runnable import InspectableRunnable
+from agent_assembly_line.config import Config
+from agent_assembly_line.data_loaders.diff_loader import GitDiffLoader
+from agent_assembly_line.memory_assistant import MemoryAssistant, MemoryStrategy, NoMemory
+from agent_assembly_line.data_loaders.data_loader_factory import DataLoaderFactory
+from agent_assembly_line.exceptions import DataLoadError, EmptyDataError
+from agent_assembly_line.utils.inspectable_runnable import InspectableRunnable
+from agent_assembly_line.data_loaders.web_loader import WebLoader
 
 import os
 
@@ -21,7 +22,7 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_ollama.llms import OllamaLLM
 from langchain_core.output_parsers import StrOutputParser
 
-from src.llm_factory import LLMFactory
+from agent_assembly_line.llm_factory import LLMFactory
 
 class Agent:
     """
@@ -137,7 +138,6 @@ class Agent:
         if self.config.debug:
             print(f"Adding URL: {url}")
         try:
-            from src.data_loaders.web_loader import WebLoader
             source_type = DataLoaderFactory.guess_url_type(url)
             loader = DataLoaderFactory.get_loader(source_type)
             data = loader.load_data(url, wait_time)

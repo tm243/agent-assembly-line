@@ -6,8 +6,8 @@ import unittest, aiounittest
 import tempfile
 import os
 import shutil
-from src.agent import Agent
-from src.memory_assistant import MemoryStrategy
+from agent_assembly_line.agent import Agent
+from agent_assembly_line.memory_assistant import MemoryStrategy
 from unittest.mock import patch, Mock
 
 class TestAgent(aiounittest.AsyncTestCase):
@@ -39,8 +39,8 @@ class TestAgent(aiounittest.AsyncTestCase):
     def tearDown(self):
         self._deleteSandbox()
 
-    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
     async def test_question_test_agent(self, mock_summarize_memory, mock):
         agent = Agent("test-agent")
 
@@ -65,8 +65,8 @@ class TestAgent(aiounittest.AsyncTestCase):
         await agent.cleanup()
         agent.closeModels()
 
-    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
     async def test_question_stream(self, mock_summarize_memory, mock_add_messages):
         agent = Agent("test-agent")
 
@@ -84,8 +84,8 @@ class TestAgent(aiounittest.AsyncTestCase):
         await agent.aCloseModels()
         agent.closeModels()
 
-    @patch('src.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('src.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
     async def test_memory(self, mock_summarize_memory, mock):
         agent = Agent("test-agent")
         agent.memory_strategy = MemoryStrategy.SUMMARY

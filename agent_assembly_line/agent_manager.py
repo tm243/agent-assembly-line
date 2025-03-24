@@ -2,7 +2,7 @@
 Agent-Assembly-Line
 """
 
-from src.agent import Agent
+from agent_assembly_line.agent import Agent
 
 class AgentManager:
     """

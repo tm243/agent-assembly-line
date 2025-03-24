@@ -4,11 +4,11 @@ Agent-Assembly-Line
 
 import unittest
 from unittest.mock import patch, MagicMock
-from src.data_loaders.rest_api_loader import RESTAPILoader
-from src.models.document import Document
+from agent_assembly_line.data_loaders.rest_api_loader import RESTAPILoader
+from agent_assembly_line.models.document import Document
 
 class TestRESTAPILoader(unittest.TestCase):
-    @patch('src.data_loaders.rest_api_loader.requests.get')
+    @patch('agent_assembly_line.data_loaders.rest_api_loader.requests.get')
     def test_load_data(self, mock_get):
         mock_response = MagicMock()
         mock_response.content = '{"key": "value"}'

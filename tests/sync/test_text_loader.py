@@ -4,11 +4,11 @@ Agent-Assembly-Line
 
 import unittest
 from unittest.mock import patch, MagicMock
-from src.data_loaders.text_loader import TextLoader
-from src.models.document import Document
+from agent_assembly_line.data_loaders.text_loader import TextLoader
+from agent_assembly_line.models.document import Document
 
 class TestTextLoader(unittest.TestCase):
-    @patch('src.data_loaders.text_loader.LangchainTextLoader')
+    @patch('agent_assembly_line.data_loaders.text_loader.LangchainTextLoader')
     def test_load_data(self, mock_text_loader):
         mock_loader_instance = MagicMock()
         mock_loader_instance.load.return_value = [Document(page_content='Test content', metadata={})]

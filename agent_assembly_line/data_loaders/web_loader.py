@@ -2,7 +2,7 @@
 Agent-Assembly-Line
 """
 
-from src.models.document import Document
+from agent_assembly_line.models.document import Document
 from bs4 import BeautifulSoup
 
 from selenium import webdriver

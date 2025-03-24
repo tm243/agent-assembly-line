@@ -6,7 +6,7 @@ import unittest
 import os
 import tempfile
 import yaml
-from src.config import Config
+from agent_assembly_line.config import Config
 
 class TestConfig(unittest.TestCase):
 

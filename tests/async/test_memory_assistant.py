@@ -5,7 +5,7 @@ Agent-Assembly-Line
 import aiounittest
 import tempfile
 import os, asyncio
-from src.memory_assistant import MemoryAssistant, MemoryStrategy
+from agent_assembly_line.memory_assistant import MemoryAssistant, MemoryStrategy
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
 
 class StubModel():

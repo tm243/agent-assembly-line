@@ -8,7 +8,7 @@ import os
 import asyncio
 import tempfile
 from unittest.mock import AsyncMock
-from src.memory_assistant import MemoryAssistant, MemoryStrategy
+from agent_assembly_line.memory_assistant import MemoryAssistant, MemoryStrategy
 from langchain_core.messages import HumanMessage, AIMessage
 
 class TestMemoryAssistant(aiounittest.AsyncTestCase):

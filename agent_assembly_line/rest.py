@@ -6,20 +6,18 @@ import os, re
 import shutil
 
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
-from src.agent_manager import AgentManager
-from src.exceptions import DataLoadError, EmptyDataError
+from agent_assembly_line.agent_manager import AgentManager
+from agent_assembly_line.exceptions import DataLoadError, EmptyDataError
+from agent_assembly_line.memory_assistant import MemoryStrategy
 
 from langchain_core.messages import (
     AIMessage,
     HumanMessage,
     SystemMessage
 )
-
-from src.memory_assistant import MemoryStrategy
-from fastapi.responses import StreamingResponse
 
 app = FastAPI()
 agent_manager = AgentManager()

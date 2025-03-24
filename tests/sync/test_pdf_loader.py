@@ -4,11 +4,11 @@ Agent-Assembly-Line
 
 import unittest
 from unittest.mock import patch, MagicMock
-from src.data_loaders.pdf_loader import PDFLoader
-from src.models.document import Document
+from agent_assembly_line.data_loaders.pdf_loader import PDFLoader
+from agent_assembly_line.models.document import Document
 
 class TestPDFLoader(unittest.TestCase):
-    @patch('src.data_loaders.pdf_loader.LangchainPDFLoader')
+    @patch('agent_assembly_line.data_loaders.pdf_loader.LangchainPDFLoader')
     def test_load_data(self, mock_pdf_loader):
         mock_loader_instance = MagicMock()
         mock_loader_instance.load.return_value = [Document(page_content='PDF content', metadata={})]

@@ -5,8 +5,8 @@ Agent Assembly Line
 import datetime as dt
 from datetime import datetime
 import pytz
-from src.data_loaders.xml_remote_loader import XmlRemoteLoader
-from src.middleware.base_dict_parser import BaseDictParser
+from agent_assembly_line.data_loaders.xml_remote_loader import XmlRemoteLoader
+from agent_assembly_line.middleware.base_dict_parser import BaseDictParser
 
 WEATHER_PARAMETERS = [
     "temperature",

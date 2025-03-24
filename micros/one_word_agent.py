@@ -2,8 +2,8 @@
 Agent-Assembly-Line
 """
 
-from src.agent import Agent
-from src.config import Config
+from agent_assembly_line.agent import Agent
+from agent_assembly_line.config import Config
 from distutils.util import strtobool
 
 class OneWordAgent(Agent):

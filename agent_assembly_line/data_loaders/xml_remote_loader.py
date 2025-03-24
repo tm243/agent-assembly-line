@@ -4,8 +4,8 @@ Agent-Assembly-Line
 
 from typing import List
 from .base_loader import DataLoader
-from src.models.document import Document
-from src.middleware.base_dict_parser import BaseDictParser
+from agent_assembly_line.models.document import Document
+from agent_assembly_line.middleware.base_dict_parser import BaseDictParser
 
 import requests
 import xmltodict

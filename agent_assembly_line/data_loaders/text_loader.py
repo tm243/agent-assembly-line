@@ -5,7 +5,7 @@ Agent-Assembly-Line
 from typing import List
 from langchain_community.document_loaders import TextLoader as LangchainTextLoader
 from .base_loader import DataLoader
-from src.models.document import Document
+from agent_assembly_line.models.document import Document
 
 class TextLoader(DataLoader):
     def load_data(self, file_path: str) -> List[Document]:

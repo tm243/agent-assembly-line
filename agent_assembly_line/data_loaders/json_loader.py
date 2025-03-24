@@ -6,7 +6,7 @@ import tempfile
 import requests
 from typing import List
 from .base_loader import DataLoader
-from src.models.document import Document
+from agent_assembly_line.models.document import Document
 from langchain_community.document_loaders import JSONLoader as LangchainJSONLoader
 
 class JSONLoader(DataLoader):

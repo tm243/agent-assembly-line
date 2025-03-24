@@ -1,5 +1,5 @@
 run:
-	uvicorn src.rest:app --reload
+	uvicorn agent_assembly_line.rest:app --reload
 
 test-async:
 	python -m unittest discover -s tests/async

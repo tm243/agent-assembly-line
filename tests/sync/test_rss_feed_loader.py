@@ -4,8 +4,8 @@ Agent-Assembly-Line
 
 import unittest
 from unittest.mock import patch, MagicMock
-from src.data_loaders.rss_feed_loader import RSSFeedLoader
-from src.models.document import Document
+from agent_assembly_line.data_loaders.rss_feed_loader import RSSFeedLoader
+from agent_assembly_line.models.document import Document
 
 class TestRSSFeedLoader(unittest.TestCase):
     @patch('feedparser.http.get')

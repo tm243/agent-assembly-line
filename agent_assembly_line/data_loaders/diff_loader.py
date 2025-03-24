@@ -1,6 +1,6 @@
 import subprocess
 from unidiff import PatchSet
-from src.models.document import Document
+from agent_assembly_line.models.document import Document
 from langchain.document_loaders.base import BaseLoader
 
 class GitDiffLoader(BaseLoader):

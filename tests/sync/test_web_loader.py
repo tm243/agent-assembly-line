@@ -4,8 +4,8 @@ Agent-Assembly-Line
 
 import aiounittest
 from unittest.mock import patch, Mock
-from src.data_loaders.web_loader import WebLoader
-from src.models.document import Document
+from agent_assembly_line.data_loaders.web_loader import WebLoader
+from agent_assembly_line.models.document import Document
 
 class TestWebLoader(aiounittest.AsyncTestCase):
     @patch('selenium.webdriver.Chrome')

@@ -2,7 +2,7 @@
 Agent-Assembly-Line
 """
 
-from src.middleware.semantic_test_case import SemanticTestCase
+from agent_assembly_line.middleware.semantic_test_case import SemanticTestCase
 import unittest
 
 longer_text = \

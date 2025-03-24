@@ -4,7 +4,7 @@ After=network.target
 StartLimitIntervalSec=0
 
 [Service]
-ExecStart=.env/bin/uvicorn src.rest:app --port 7999 --reload
+ExecStart=.env/bin/uvicorn agent_assembly_line.rest:app --port 7999 --reload
 User=ubuntu
 WorkingDirectory=.
 ExecReload=/bin/kill -s HUP $MAINPID
