@@ -13,6 +13,8 @@ Agent-Assembly-Line supports:
 - Local LLMs as well as cloud-based LLMs: Ollama and ChatGPT
 - Streaming mode and regular runs
 - Context
+- Micros: small, single task agents that handle distinct functionalities and can be chained
+- cli-agents: agents that can be chained on the command line
 
 Agent-Assembly-Line comes with examples such as [Semantic Unittests](tests/sync/test_text_validator.py), [Diff Analysis](examples/diff_analysis.py), and more; a demo chat app and tests.
 
