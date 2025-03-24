@@ -11,6 +11,12 @@ class DiffSumAgent(Agent):
     """
 
     def __init__(self, text):
+        """
+        Initializes the DiffSumAgent with the given text.
+
+        Args:
+            text (str): The Git diff text to analyze.
+        """
         self.config = Config()
 
         inline_rag_template = """

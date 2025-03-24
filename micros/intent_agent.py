@@ -5,23 +5,19 @@ Agent-Assembly-Line
 from src.agent import Agent
 from src.config import Config
 
-class SumAgent(Agent):
+class IntentAgent(Agent):
     """
-    A small agent specialized in summarizing text. Chose between local and cloud mode.
+    A small agent specialized in detecting intention. Chose between local and cloud mode.
     """
 
     def __init__(self, text, mode='local'):
-        """
-        Initializes the SumAgent with the given text and mode.
-
-        Args:
-            text (str): The text to summarize.
-            mode (str): The mode to use ('local' or 'cloud'). Defaults to 'local'.
-        """
         self.config = Config()
 
         inline_rag_template = """
-        You are a helpful AI assistant specialized in summarizing text.
+        You are a helpful AI assistant specialized in detecting intention in a text.
+
+        ## Instructions
+        - Please describe the user's desired outcome or action. Text
 
         ## Context:
         - Today's date: {today}
@@ -42,7 +38,7 @@ class SumAgent(Agent):
             raise ValueError("Invalid mode. Choose either 'local' or 'cloud'.")
 
         self.config.load_conf_dict({
-            "name": "diff-demo",
+            "name": "yes-no-agent-demo",
             "prompt": { "inline_rag_templates": inline_rag_template },
             "llm": {
                 "model-identifier": model_identifier,
@@ -52,5 +48,14 @@ class SumAgent(Agent):
         super().__init__(config=self.config)
         self.add_inline_text(text)
 
-    def run(self, prompt="Summarize the following text in 2-3 sentences, capturing the main idea and key details."):
+    def run(self, prompt="What is the main goal or intention expressed in this text?"):
         return super().run(prompt)
+
+    def get_all_agents(self):
+        """
+        Retrieves a list of all available agents by scanning the 'micros/' folder.
+
+        Returns:
+            str: A comma-separated list of agent names.
+        """
+

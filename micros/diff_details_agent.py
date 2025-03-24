@@ -11,6 +11,12 @@ class DiffDetailsAgent(Agent):
     """
 
     def __init__(self, diff_text):
+        """
+        Initializes the DiffDetailsAgent with the given Git diff text.
+
+        Args:
+            diff_text (str): The Git diff text to analyze.
+        """
         self.config = Config()
 
         inline_rag_template = """

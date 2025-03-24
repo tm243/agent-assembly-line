@@ -1,0 +1,25 @@
+#!.venv/bin/python
+"""
+Agent-Assembly-Line
+"""
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+
+from micros.choose_agent_agent import ChooseAgentAgent
+
+if sys.stdin.isatty():
+    if len(sys.argv) != 2:
+        print("Usage: python clarity_example.py <text>")
+        print("       echo <text> | clarity_example.py")
+        print("       cat <text_file> | clarity_example.py")
+        sys.exit(1)
+    text = sys.argv[1]
+else:
+    text = sys.stdin.read()
+
+
+agent = ChooseAgentAgent(text, mode='local')
+result = agent.run()
+
+print(result)
+

@@ -4,24 +4,29 @@ Agent-Assembly-Line
 
 from src.agent import Agent
 from src.config import Config
+from distutils.util import strtobool
 
-class SumAgent(Agent):
+class SentimentAgent(Agent):
     """
-    A small agent specialized in summarizing text. Chose between local and cloud mode.
+    A small agent specialized in detecting sentiment. Chose between local and cloud mode.
     """
 
     def __init__(self, text, mode='local'):
         """
-        Initializes the SumAgent with the given text and mode.
+        Initializes the SentimentAgent with the given text and mode.
 
         Args:
-            text (str): The text to summarize.
+            text (str): The text to analyze for sentiment.
             mode (str): The mode to use ('local' or 'cloud'). Defaults to 'local'.
         """
         self.config = Config()
 
         inline_rag_template = """
-        You are a helpful AI assistant specialized in summarizing text.
+        You are a helpful AI assistant specialized in detecting sentiment in a text.
+
+        ## Instructions
+        - What is the dominant emotional tone conveyed in this text?
+        - Be specific about whether it leans towards joy, sadness, anger, fear, or something else.
 
         ## Context:
         - Today's date: {today}
@@ -42,7 +47,7 @@ class SumAgent(Agent):
             raise ValueError("Invalid mode. Choose either 'local' or 'cloud'.")
 
         self.config.load_conf_dict({
-            "name": "diff-demo",
+            "name": "yes-no-agent-demo",
             "prompt": { "inline_rag_templates": inline_rag_template },
             "llm": {
                 "model-identifier": model_identifier,
@@ -52,5 +57,6 @@ class SumAgent(Agent):
         super().__init__(config=self.config)
         self.add_inline_text(text)
 
-    def run(self, prompt="Summarize the following text in 2-3 sentences, capturing the main idea and key details."):
+    def run(self, prompt="Analyze the following text and determine its overall sentiment"):
         return super().run(prompt)
+
