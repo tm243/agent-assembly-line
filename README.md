@@ -2,6 +2,8 @@
 
 [Build AI agents in Python. A library for developers.](#simple-api)
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/X9bys8RB5EMsjhQjp1eEDL/JkxNCG7MxwpLaBBRHyfEXt/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/circleci/X9bys8RB5EMsjhQjp1eEDL/JkxNCG7MxwpLaBBRHyfEXt/tree/main)
+
 Agent-Assembly-Line, built on top of Langchain, offers components that simplify the setup of agents and multi-agent chains.
 
 Agent-Assembly-Line supports:
