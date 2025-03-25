@@ -1,0 +1,70 @@
+version: 2.1
+orbs:
+  node: circleci/node@5
+  python: circleci/python@3
+  evals: circleci/evals@2.0
+jobs:
+  test-node:
+    executor: node/default
+    working_directory: ~/project/app
+    steps:
+      - checkout:
+          path: ~/project
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          name: Run tests
+          command: echo "No test specified in package.json"
+  build-node:
+    executor: node/default
+    working_directory: ~/project/app
+    steps:
+      - checkout:
+          path: ~/project
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          command: npm run build
+      - run:
+          name: Create the ~/artifacts directory if it doesn't exist
+          command: mkdir -p ~/artifacts
+      - run:
+          name: Copy artifacts
+          command: cp -R build dist public .output .next .docusaurus ~/artifacts
+            2>/dev/null || true
+      - store_artifacts:
+          path: ~/artifacts
+          destination: node-build
+  test-python:
+    docker:
+      - image: cimg/python:3.9-node
+    steps:
+      - checkout
+      - python/install-packages
+      - run:
+          name: Run tests
+          command: |
+            mkdir -p test-results
+            python -m unittest tests/sync/*loader.py
+      - store_test_results:
+          path: test-results
+  deploy:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: deploy
+          command: "#e.g. ./deploy.sh"
+workflows:
+  build-and-test:
+    jobs:
+      - test-node:
+          context:
+            &a1 []
+      - build-node:
+          requires:
+            - test-node
+            - test-python
+          context: []
+      - test-python:
+          context: *a1
