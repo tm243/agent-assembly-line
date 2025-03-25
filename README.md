@@ -125,6 +125,8 @@ ollama run gemma2
 ollama pull nomic-embed-text
 ```
 
+You might also want to set the OLLAMA_HOST env variable in case your Ollama isn't listening on default 127.0.0.1:11434
+
 ### ChatGPT/OpenAI
 
 You can use ChatGPT as an LLM by using the openai identifier:
