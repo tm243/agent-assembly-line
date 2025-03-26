@@ -4,7 +4,9 @@
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/X9bys8RB5EMsjhQjp1eEDL/JkxNCG7MxwpLaBBRHyfEXt/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/circleci/X9bys8RB5EMsjhQjp1eEDL/JkxNCG7MxwpLaBBRHyfEXt/tree/main)
 
-Agent-Assembly-Line, built on top of Langchain, offers components that simplify the setup of agents and multi-agent chains.
+Agent-Assembly-Line is a framework for building AI agents that can be easily embedded into existing software stacks. Includes ready-to-use components for task-based and conversational agents.
+
+Agent-Assembly-Line offers components that simplify the setup of agents and multi-agent chains and works with local and cloud based LLMs.
 
 Agent-Assembly-Line supports:
 - Task based Agents (Functional Agents)
@@ -22,7 +24,7 @@ Agent-Assembly-Line comes with examples such as [Semantic Unittests](tests/sync/
 
 ## Table of Content
 
-- [Agent-Assembly-Line](#agent-assembly-line)
+- [Example](#example)
 - [Getting Started](#getting-started)
     - [Install Python Env](#install-python-environment)
     - [Setup an LLM](#setup-an-llm)
@@ -39,6 +41,19 @@ Agent-Assembly-Line comes with examples such as [Semantic Unittests](tests/sync/
 - [Contributing](#contributing)
 - [Reporting Issues](#reporting-issues)
 - [License](#license)
+
+# Example
+
+Create an agent for fetching the weather in Helsinki
+
+```Python
+from agent_assembly_line import FmiWeatherAgent
+
+agent = FmiWeatherAgent("Helsinki", forecast_hours=24, mode="local")
+result = agent.run()
+```
+
+Output: "The rest of today in Helsinki will be sunny and mild with temperatures around 4 degrees Celsius. Expect clear skies throughout the evening and overnight.
 
 # Getting Started
 
