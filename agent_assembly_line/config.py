@@ -80,6 +80,8 @@ class Config:
         user_agents_path = os.getenv('USER_AGENTS_PATH', os.path.expanduser(f"~/.local/share/agent-assembly-line/agents/{agent_name}"))
         local_agents_path = os.getenv('LOCAL_AGENTS_PATH', f"agents/{agent_name}")
 
+        local_agents_path = os.path.join(os.path.dirname(__file__), local_agents_path)
+
         if os.path.exists(user_agents_path):
             return user_agents_path
         elif os.path.exists(local_agents_path):

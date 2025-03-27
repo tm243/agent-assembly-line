@@ -5,8 +5,8 @@ Agent-Assembly-Line
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from micros.clarity_agent import ClarityAgent
-from micros.yes_no_agent import YesNoAgent
+from agent_assembly_line.micros.clarity_agent import ClarityAgent
+from agent_assembly_line.micros.yes_no_agent import YesNoAgent
 
 if sys.stdin.isatty():
     if len(sys.argv) != 2:

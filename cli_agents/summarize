@@ -5,7 +5,7 @@ Agent-Assembly-Line
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from micros.sum_agent import SumAgent
+from agent_assembly_line.micros.sum_agent import SumAgent
 
 if sys.stdin.isatty():
     if len(sys.argv) != 2:

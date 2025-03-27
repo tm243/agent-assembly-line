@@ -221,6 +221,10 @@ sum_agent = DiffSumAgent(detailed_answer)
 sum_answer = sum_agent.run()
 ```
 
+```Console
+git diff HEAD | cli_agents/diff_details
+```
+
 ### Text Summary
 
 Generic text summarization. You can choose local LLMs or cloud (CHatGPT).

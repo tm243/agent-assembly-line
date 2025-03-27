@@ -5,7 +5,7 @@ Agent-Assembly-Line
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from micros.choose_agent_agent import ChooseAgentAgent
+from agent_assembly_line.micros.choose_agent_agent import ChooseAgentAgent
 
 if sys.stdin.isatty():
     if len(sys.argv) != 2:

@@ -5,8 +5,8 @@ Agent-Assembly-Line
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from micros.diff_details_agent import DiffDetailsAgent
-from micros.diff_sum_agent import DiffSumAgent
+from agent_assembly_line.micros.diff_details_agent import DiffDetailsAgent
+from agent_assembly_line.micros.diff_sum_agent import DiffSumAgent
 
 if sys.stdin.isatty():
     if len(sys.argv) != 2:
