@@ -5,7 +5,7 @@ Agent-Assembly-Line
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from micros.fmi_weather_agent import FmiWeatherAgent
+from agent_assembly_line.micros.fmi_weather_agent import FmiWeatherAgent
 
 if sys.stdin.isatty():
     if len(sys.argv) != 2:

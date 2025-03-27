@@ -69,6 +69,24 @@ jobs:
             python -m unittest discover -s tests/
       - store_test_results:
           path: test-results
+  build-python-package:
+    docker:
+      - image: cimg/python:3.9
+    steps:
+      - checkout
+      - python/install-packages
+      - run:
+          name: Install build tool
+          command: python -m pip install --upgrade pip build
+      - run:
+          name: Build pip package
+          command: python -m build
+      - run:
+          name: Store built package
+          command: mkdir -p ~/artifacts && cp dist/* ~/artifacts
+      - store_artifacts:
+          path: ~/artifacts
+          destination: python-package
   deploy:
     docker:
       - image: cimg/base:stable
@@ -86,6 +104,9 @@ workflows:
           requires:
             - test-node
             - test-python
+            - build-python-package
           context: []
       - test-python:
           context: *a1
+      - build-python-package:
+          context: []

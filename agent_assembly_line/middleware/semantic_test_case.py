@@ -4,7 +4,7 @@ Agent-Assembly-Line
 
 import unittest
 import unittest.util
-from micros.test_validator_agent import TestValidatorAgent
+from agent_assembly_line.micros.test_validator_agent import TestValidatorAgent
 from unittest.util import safe_repr
 from distutils.util import strtobool
 

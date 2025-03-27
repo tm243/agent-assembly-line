@@ -5,7 +5,7 @@ Agent-Assembly-Line
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from micros.one_word_agent import OneWordAgent
+from agent_assembly_line.micros.one_word_agent import OneWordAgent
 
 if sys.stdin.isatty():
     if len(sys.argv) != 2:

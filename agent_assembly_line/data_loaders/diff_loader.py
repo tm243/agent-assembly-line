@@ -1,4 +1,4 @@
-import subprocess
+import subprocess, os
 from unidiff import PatchSet
 from agent_assembly_line.models.document import Document
 from langchain.document_loaders.base import BaseLoader
@@ -30,9 +30,15 @@ class GitDiffLoader(BaseLoader):
         return changed_files
 
     def get_file_content(self, filename):
-        """Reads the full content of a file."""
-        with open(f"{self.repo_path}/{filename}", "r", encoding="utf-8") as f:
-            return f.read()
+        """
+        Reads the full content of a file, if it exists.
+        Moved or deleted files will not be attempted to be opened.
+        """
+        file_path = f"{self.repo_path}/{filename}"
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                return f.read()
+        return ""
 
     def load_data(self, raw_diff: str = None):
         """Processes the diff and extracts structured changes."""
