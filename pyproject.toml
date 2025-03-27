@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-assembly-line"
+version = "0.0.1"
+description = "A package for building AI agents that can be easily embedded into existing software stacks."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Thomas" }
+]
+requires-python = ">=3.9,<3.14"
+dependencies = [
+    "openai",
+    "PyYAML",
+    "requests",
+    "langchain",
+    "langchain_community",
+    "langchain_chroma",
+    "langchain_ollama",
+    "langchain_openai",
+    "pandas",
+    "numpy>=1.21.0,<1.27.0; python_version<'3.13'",
+    "numpy>=1.26.0; python_version>='3.13'",
+    "pytest",
+    "sqlalchemy",
+    "pip",
+    "tomli; python_version<'3.11'",
+    "unidiff",
+    "bs4",
+    "selenium",
+    "webdriver_manager",
+    "xmltodict",
+    "jq",
+    "aiounittest",
+    "newspaper3k",
+    "typing-inspect==0.9.0",
+    "lxml_html_clean",
+    "urllib3==1.26.20",
+    "python-multipart",
+    "pydantic==2.10.6",
+    "fastapi==0.115.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/tm243/agent-assembly-line"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "agent_assembly_line*",
+    "agent_assembly_line/agents/chat-demo/*",
+    "agent_assembly_line/agents/aethelland-demo",
+    ]
