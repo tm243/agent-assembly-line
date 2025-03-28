@@ -42,3 +42,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/tm243/agent-assembly-line"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agent_assembly_line*"]
