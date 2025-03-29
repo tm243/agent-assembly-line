@@ -258,7 +258,7 @@ class Agent:
             return response_message
         today = datetime.datetime.now().strftime("%A, %B %d, %Y %I:%M %p")
         agent_info = self.config.name + " using " + self.config.model_name
-
+        print(f"Agent info: {agent_info}")
         # @todo: session id to separate conversations
         chain = (
             RunnablePassthrough.assign(
