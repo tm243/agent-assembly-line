@@ -1,4 +1,3 @@
-agent-assembly-line @ file:///Users/thomas/Projects/assistants/AskYourDoc/agent-assembly-line
 aiohappyeyeballs==2.6.1
 aiohttp==3.11.14
 aiosignal==1.3.2
