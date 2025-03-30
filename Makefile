@@ -1,11 +1,11 @@
 run:
 	uvicorn agent_assembly_line.rest:app --reload
 
-test-async:
-	python -m unittest discover -s tests/async
+test-llm:
+	python -m unittest discover -s tests/llm
 
-test-sync:
-	python -m unittest discover -s tests/sync
+test-non-llm:
+	python -m unittest discover -s tests/non-llm
 
 tests: test
 test:
@@ -15,8 +15,8 @@ test-loaders:
 	python -m unittest tests/test_data_loaders/*
 
 test-verbose:
-	python -m unittest discover -s tests/async -v
-	python -m unittest discover -s tests/sync -v
+	python -m unittest discover -s tests/llm -v
+	python -m unittest discover -s tests/non-llm -v
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
