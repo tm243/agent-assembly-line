@@ -41,8 +41,36 @@ class SemanticTestCase(unittest.TestCase):
         return super().tearDown()
 
     def assertSemanticallyEqual(self, first, second, msg=""):
-        self.agent.replace_inline_text(first)
-        result = self.agent.run(f"Is this '{second}' the same as the following text?").strip()
+        """
+        @todo try verifying this with embeddings:
+        Compute cosine similarity between the embeddings of the two strings.
+        If similarity > threshold (e.g., 0.8), return True, otherwise False.
+
+        """
+        # first we see if the strings are equal, that saves us a rountrip to the model
+        for char in ["\n", "\r", "."]:
+            first = first.replace(char, " ")
+            second = second.replace(char, " ")
+        first, second = first.strip(), second.strip()
+        if first == second:
+            return
+
+        prompt = f"""
+        Please determine if the following two statements have the same meaning.
+
+        ## Instructions:
+        - Compare the meaning of both statements.
+        - If they have the same meaning, answer `True`. Otherwise, answer `False`.
+
+        ## Statement 1:
+        {first}
+
+        ## Statement 2:
+        {second}
+        """
+
+        result = self.agent.run(prompt).strip()
+
         try:
             is_semantically_equal = bool(strtobool(result))
         except ValueError:
@@ -52,8 +80,21 @@ class SemanticTestCase(unittest.TestCase):
             raise self.failureException(msg)
 
     def assertSemanticallyCorrect(self, first, second, msg = ""):
-        self.agent.replace_inline_text(first)
-        result = self.agent.run(second).strip()
+
+        prompt = f"""
+        Please tell if the assumption is true about the text.
+
+        ## Instructions:
+        - answer only with `True` or `False`
+
+        ## Text:
+        {first}
+
+        ## Assumption:
+        {second}
+        """
+
+        result = self.agent.run(prompt).strip()
         try:
             is_semantically_correct = bool(strtobool(result))
         except ValueError:
@@ -63,8 +104,21 @@ class SemanticTestCase(unittest.TestCase):
             raise self.failureException(msg)
 
     def assertSemanticallyIncorrect(self, first, second, msg = ""):
-        self.agent.replace_inline_text(first)
-        result = self.agent.run(second).strip()
+
+        prompt = f"""
+        Please tell if the assumption is true about the text.
+
+        ## Instructions:
+        - answer only with `True` or `False`
+
+        ## Text:
+        {first}
+
+        ## Assumption:
+        {second}
+        """
+
+        result = self.agent.run(prompt).strip()
         try:
             is_semantically_correct = bool(strtobool(result))
         except ValueError:

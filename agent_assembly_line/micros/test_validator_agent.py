@@ -16,16 +16,11 @@ class TestValidatorAgent(Agent):
         inline_rag_template = """
         Please tell if the assumption is true about the text.
 
-        ## Context:
-        - Today's date: {today}
-
         ## Instructions
-        - answer only with `True` or `False`
+        - Consider whether the provided statement conveys the same meaning as "\n{context}\n".
+        - If the meaning is the same, answer `True`. Otherwise, answer `False`.
 
-        ## Text:
-        {context}
-
-        ## Assumption:
+        ## Statement:
         {question}
         """
 
