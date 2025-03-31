@@ -37,15 +37,36 @@ jobs:
   test-python:
     docker:
       - image: cimg/python:3.9-node
+      - image: ollama/ollama:latest
+        name: ollama
     resource_class: large
     steps:
       - checkout
       - python/install-packages
       - run:
+          name: Wait for Ollama to start
+          command: |
+            until curl -s http://ollama:11434/; do
+              echo "Waiting for Ollama to start..."
+              sleep 5
+            done
+      - run:
+          name: Pull Gemma3 Model Using Web API
+          command: |
+            curl -X POST http://ollama:11434/api/pull \
+              -H "Content-Type: application/json" \
+              -d '{"model": "gemma3:4b"}'
+      - run:
+          name: Pull Nomic-Embed-Text Model Using Web API
+          command: |
+            curl -X POST http://ollama:11434/api/pull \
+              -H "Content-Type: application/json" \
+              -d '{"model": "nomic-embed-text"}'
+      - run:
           name: Run tests
           command: |
             mkdir -p test-results
-            python -m unittest discover -s tests/non-llm/
+            python -m unittest discover -s tests/
       - store_test_results:
           path: test-results
   build-python-package:
