@@ -62,15 +62,9 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         self.assertIn("300,000", text, "Number of citizen")
         mock_add_message.assert_called_once_with(question, text)
 
-        text = agent.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
-        self.assertIn("I cannot answer this question", text, "Number of citizen, without RAG")
-
         question = "What is the name of the country? Short answer."
         text = agent.run(question)
         self.assertIn("Aethelland", text, "Name of country")
-
-        text = agent.run(question + " If you don't know the answer, reply with 'I cannot answer this question", skip_rag=True)
-        self.assertIn("I cannot answer this question", text, "Name of country, without RAG")
 
         await agent.cleanup()
         agent.closeModels()

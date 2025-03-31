@@ -1,4 +1,4 @@
 .venv
-.test-env
+.test-*
 node_modules
 dist
