@@ -20,7 +20,7 @@ Agent-Assembly-Line supports:
 - Micros: small, single task agents that handle distinct functionalities and can be chained
 - cli-agents: agents that can be chained on the command line
 
-Agent-Assembly-Line comes with examples such as [Semantic Unittests](tests/sync/test_text_validator.py), [Diff Analysis](examples/diff_analysis.py), and more; a demo chat app and tests.
+Agent-Assembly-Line comes with examples such as [Semantic Unittests](tests/llm/test_text_validator.py), [Diff Analysis](examples/diff_analysis.py), and more; a demo chat app and tests.
 
 ## Table of Content
 
