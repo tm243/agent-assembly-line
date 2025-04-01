@@ -22,6 +22,11 @@ Agent-Assembly-Line supports:
 
 Agent-Assembly-Line comes with examples such as [Semantic Unittests](tests/llm/test_text_validator.py), [Diff Analysis](examples/diff_analysis.py), and more; a demo chat app and tests.
 
+Python 3.9, 3.10:
+```console
+pip install agent_assembly_line
+```
+
 ## Table of Content
 
 - [Example](#example)
