@@ -1,0 +1,7 @@
+include agent_assembly_line/*.py
+include README.md
+include LICENSE
+include agent_assembly_line/agents/chat-demo/*
+recursive-include agent_assembly_line/agents/chat-demo *
+include agent_assembly_line/agents/aethelland-demo/*
+recursive-include agent_assembly_line/agents/aethelland-demo *
