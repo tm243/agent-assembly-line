@@ -11,9 +11,6 @@ tests: test
 test:
 	python -m unittest discover -s tests/
 
-test-loaders:
-	python -m unittest tests/test_data_loaders/*
-
 test-verbose:
 	python -m unittest discover -s tests/llm -v
 	python -m unittest discover -s tests/non-llm -v

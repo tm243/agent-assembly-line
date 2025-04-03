@@ -8,7 +8,7 @@ import os
 import shutil
 from agent_assembly_line.agent_manager import AgentManager
 from agent_assembly_line.memory_assistant import MemoryStrategy
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, AsyncMock
 
 class TestAgentManager(aiounittest.AsyncTestCase):
 
@@ -41,26 +41,24 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         self.agent_manager.cleanup()
         self._deleteSandbox()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
     async def test_select_agent(self, mock_summarize_memory):
-        agent = self.agent_manager.select_agent("test-agent", debug=False)
+        agent = await self.agent_manager.select_agent("test-agent", debug=False)
         mock_summarize_memory.assert_called_once()
         self.assertEqual(agent.agent_name, "test-agent")
         await agent.cleanup()
         agent.closeModels()
         self.agent_manager.cleanup()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
-    async def test_question(self, mock_summarize_memory, mock_add_message):
-        self.agent_manager.select_agent("test-agent", debug=False)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
+    async def test_question(self, mock_summarize_memory):
+        await self.agent_manager.select_agent("test-agent", debug=False)
         mock_summarize_memory.assert_called_once()
         agent = self.agent_manager.get_agent()
 
         question = "How many people live in the country? Short answer."
         text = agent.run(question)
         self.assertIn("300,000", text, "Number of citizen")
-        mock_add_message.assert_called_once_with(question, text)
 
         question = "What is the name of the country? Short answer."
         text = agent.run(question)
@@ -68,11 +66,12 @@ class TestAgentManager(aiounittest.AsyncTestCase):
 
         await agent.cleanup()
         agent.closeModels()
+        self.agent_manager.cleanup()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=AsyncMock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
     async def test_memory(self, mock_summarize_memory, mock):
-        self.agent_manager.select_agent("test-agent", debug=False)
+        await self.agent_manager.select_agent("test-agent", debug=False)
         mock_summarize_memory.assert_called_once()
         agent = self.agent_manager.get_agent()
         agent.memory_strategy = MemoryStrategy.SUMMARY

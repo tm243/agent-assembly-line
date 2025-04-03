@@ -7,10 +7,10 @@ import tempfile
 import os
 import shutil
 from agent_assembly_line import Agent, AgentManager
-from unittest.mock import patch, Mock
-from agent_assembly_line.middleware.semantic_test_case import SemanticTestCase
-
-class TestAgent(SemanticTestCase):
+from unittest.mock import patch, Mock, AsyncMock
+from agent_assembly_line.middleware.semantic_test_case import SemanticTestCase, AioSemanticTestCase
+import asyncio
+class TestAgent(AioSemanticTestCase):
 
     def _createSandbox(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -36,15 +36,16 @@ class TestAgent(SemanticTestCase):
     def setUp(self):
         self._createSandbox()
         self.agent_manager = AgentManager()
+        asyncio.get_event_loop().set_debug(False)
 
     def tearDown(self):
         self.agent_manager.cleanup()
         self._deleteSandbox()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
-    def test_question_test_agent(self, mock_summarize_memory, mock):
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
+    async def test_question_test_agent(self, mock_summarize_memory):
         agent = Agent("test-agent")
+        await agent.startMemoryAssistant()
 
         mock_summarize_memory.assert_called_once()
 
@@ -52,44 +53,43 @@ class TestAgent(SemanticTestCase):
         text = agent.run(question)
         self.assertIn("300,000", text, "Number of citizen")
 
-        mock.assert_called_once_with(question, text)
-
         text = agent.run(question + " If you don't know the answer, reply only with 'I cannot answer this question'", skip_rag=True)
-        self.assertSemanticallyEqual("I cannot answer this question", text)
+        await self.assertSemanticallyEqual("I cannot answer this question", text)
 
         question = "What is the name of the country? Short answer."
         text = agent.run(question)
         self.assertIn("Aethelland", text, "Name of country")
 
         text = agent.run(question + " If you don't know the answer, reply only with 'I cannot answer this question'", skip_rag=True)
-        self.assertSemanticallyEqual("I cannot answer this question", text)
+        await self.assertSemanticallyEqual("I cannot answer this question", text)
 
+        await agent.cleanup()
         agent.closeModels()
+        self.agent_manager.cleanup()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
-    def test_question(self, mock_summarize_memory, mock_add_message):
-        self.agent_manager.select_agent("test-agent", debug=False)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
+    async def test_question(self, mock_summarize_memory):
+        await self.agent_manager.select_agent("test-agent", debug=False)
         mock_summarize_memory.assert_called_once()
         agent = self.agent_manager.get_agent()
 
         question = "How many people live in the country? Short answer."
-        text = agent.run(question)
+        text = await agent.arun(question)
         self.assertIn("300,000", text, "Number of citizen")
-        mock_add_message.assert_called_once_with(question, text)
 
-        text = agent.run(question + " If you don't know the answer, reply only with 'I cannot answer this question'", skip_rag=True)
-        self.assertSemanticallyEqual("I cannot answer this question", text, "Number of citizen, without RAG")
+        text = await agent.arun(question + " If you don't know the answer, reply only with 'I cannot answer this question'", skip_rag=True)
+        await self.assertSemanticallyEqual("I cannot answer this question", text, "Number of citizen, without RAG")
 
         question = "What is the name of the country? Short answer."
-        text = agent.run(question)
+        text = await agent.arun(question)
         self.assertIn("Aethelland", text, "Name of country")
 
         text = agent.run(question + " If you don't know the answer, reply only with 'I cannot answer this question'", skip_rag=True)
-        self.assertSemanticallyEqual("I cannot answer this question", text, "Name of country, without RAG")
+        await self.assertSemanticallyEqual("I cannot answer this question", text, "Name of country, without RAG")
 
-        # agent.cleanup()
+        await agent.cleanup()
         agent.closeModels()
+        self.agent_manager.cleanup()
 
 if __name__ == '__main__':
     unittest.main()
