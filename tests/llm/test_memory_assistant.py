@@ -9,6 +9,7 @@ from agent_assembly_line.memory_assistant import MemoryAssistant, MemoryStrategy
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
 
 class StubModel():
+    prompt = ""
     def invoke(self, prompt):
         self.prompt = prompt
     async def ainvoke(self, prompt):
@@ -40,7 +41,7 @@ class TestMemory(aiounittest.AsyncTestCase):
     async def test_add_message(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
 
-        memory.add_message("What day is today?", "Today is Tuesday")
+        await memory.add_message("What day is today?", "Today is Tuesday")
 
         self.assertEqual(len(memory.messages), 2)
         self.assertEqual(memory.messages[0].content, "What day is today?")
@@ -50,12 +51,14 @@ class TestMemory(aiounittest.AsyncTestCase):
 
     async def test_save_messages(self):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
+        await memory.start_saving()
+        await memory.load_messages(self.config.memory_path)
 
-        memory.add_message("message", "response")
+        await memory.add_message("message", "response")
 
         memory.save_messages(self.config.memory_path)
         memory.messages = []
-        memory.load_messages(self.config.memory_path)
+        await memory.load_messages(self.config.memory_path)
         self.assertEqual(len(memory.messages), 2)
         self.assertEqual(memory.messages[0].content, "message")
         self.assertEqual(memory.messages[1].content, "response")
@@ -67,7 +70,7 @@ class TestMemory(aiounittest.AsyncTestCase):
         memory.max_messages_in_buffer = 6
 
         for i in range(60):
-            memory.add_message(f"Question {i}", f"Answer {i}")
+            await memory.add_message(f"Question {i}", f"Answer {i}")
 
         self.assertEqual(len(memory.messages), 6)
         self.assertEqual(memory.messages[0].content, "Question 57")
@@ -144,15 +147,45 @@ class TestMemory(aiounittest.AsyncTestCase):
         memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
         memory.auto_save_interval = 1
 
-        memory.add_message("Auto-save test", "This should be saved automatically")
+        await memory.add_message("Auto-save test", "This should be saved automatically")
 
         # Wait for the auto-save to trigger
         await asyncio.sleep(2)
 
-        memory.load_messages(self.config.memory_path)
+        await memory.load_messages(self.config.memory_path)
         self.assertEqual(len(memory.messages), 2)
         self.assertEqual(memory.messages[0].content, "Auto-save test")
         self.assertEqual(memory.messages[1].content, "This should be saved automatically")
+
+        await memory.stopSaving()
+
+    async def test_add_summarize_memory(self):
+        """
+        add_message() should add messages to the memory buffer and summarize_memory() should summarize the messages.
+        """
+        memory = MemoryAssistant(strategy=MemoryStrategy.SUMMARY, model=StubModel(), config=self.config)
+
+        await memory.add_message("What day is today?", "Today is Tuesday")
+        await memory.add_message("What time is it?", "It's 3 PM")
+
+        while not memory.model.prompt:
+            await asyncio.sleep(0.1)
+
+        self.assertIn("What day is today?", memory.model.prompt)
+        self.assertIn("What time is it?", memory.model.prompt)
+
+        await memory.stopSaving()
+
+    async def test_no_summary(self):
+        """
+        If the memory strategy is set to NO_MEMORY, the model should not be prompted to summarize the memory.
+        """
+        memory = MemoryAssistant(strategy=MemoryStrategy.NO_MEMORY, model=StubModel(), config=self.config)
+
+        await memory.add_message("What day is today?", "Today is Tuesday")
+        await memory.add_message("What time is it?", "It's 3 PM")
+
+        self.assertEqual("", memory.model.prompt)
 
         await memory.stopSaving()
 

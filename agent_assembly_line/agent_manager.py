@@ -11,9 +11,10 @@ class AgentManager:
     def __init__(self):
         self.current_agent = None
 
-    def select_agent(self, agent_name, debug=False):
+    async def select_agent(self, agent_name, debug=False):
         if self.current_agent is None or self.current_agent.agent_name != agent_name:
             self.current_agent = Agent(agent_name, debug)
+            await self.current_agent.startMemoryAssistant()
         return self.current_agent
 
     def get_agent(self):

@@ -2,6 +2,7 @@
 Agent-Assembly-Line
 """
 
+from typing import AsyncGenerator, AsyncIterator
 from agent_assembly_line.config import Config
 from agent_assembly_line.data_loaders.diff_loader import GitDiffLoader
 from agent_assembly_line.memory_assistant import MemoryAssistant, MemoryStrategy, NoMemory
@@ -53,7 +54,7 @@ class Agent:
         if agent_name:
             self.agent_name = agent_name
         if not config:
-            self.config = Config(agent_name, debug)
+            self.config = Config(load_agent_conf=agent_name, debug=debug)
         else:
             self.config = config
         if not agent_name:
@@ -69,11 +70,12 @@ class Agent:
 
         self.agent_vectorstore = self.load_data(self.config)
         self.user_vectorstore = Chroma("uploaded-data",self.embeddings)
-        self.memory_strategy = MemoryStrategy.SUMMARY
         if self.config.use_memory:
+            self.memory_strategy = MemoryStrategy.SUMMARY
             self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=self.config)
-            self.memory_assistant.load_messages(self.config.memory_path)
+        # todo: add simple history
         else:
+            self.memory_strategy = MemoryStrategy.NO_MEMORY
             self.memory_assistant = NoMemory(config=self.config)
         self.stats = {}
 
@@ -91,6 +93,10 @@ class Agent:
     async def aCloseModels(self):
         await self.model._async_client._client.aclose()
         await self.embeddings._async_client._client.aclose()
+
+    async def startMemoryAssistant(self):
+        await self.memory_assistant.start_saving()
+        await self.memory_assistant.load_messages(self.config.memory_path)
 
     def load_data(self, config) -> Chroma:
         source_type, source_path = DataLoaderFactory.guess_source_type(config)
@@ -209,65 +215,106 @@ class Agent:
             print(f"Time taken: {timediff:.2f} ms, {named}")
         self.timestamp = now
 
-    def run(self, prompt, skip_rag = False):
-        text = self.do_chain(prompt, skip_rag, self.run_callback)
+    def run(self, prompt: str, skip_rag: bool = False) -> str:
+        import asyncio
+
+        if not isinstance(prompt, str):
+            raise TypeError("The prompt must be a string.")
+        if not prompt:
+            return ""
+        text = ""
+        try:
+            loop = asyncio.get_running_loop()
+            if loop.is_running():
+                # If the loop is already running (e.g., in a Jupyter Notebook or test), use nest_asyncio
+                import nest_asyncio
+                nest_asyncio.apply()
+                text = loop.run_until_complete(self._consume_async_generator(self.do_chain(prompt, skip_rag, self.arun_callback)))
+            else:
+                text = loop.run_until_complete(self._consume_async_generator(self.do_chain(prompt, skip_rag, self.arun_callback)))
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            text = loop.run_until_complete(self._consume_async_generator(self.do_chain(prompt, skip_rag, self.run_callback)))
+            loop.close()
+
         self._log_time("chain invoked")
-        self.memory_assistant.add_message(prompt, text)
+        return text
+
+    async def _consume_async_generator(self, async_gen):
+        """Helper method to consume an async generator and collect results into a single string."""
+        collected_text = ""
+        async for item in async_gen:
+            # can be string or async generator:
+            if isinstance(item, str):
+                collected_text += item
+            else:
+                resolvedItem = await item
+                collected_text += resolvedItem
+        return collected_text
+
+    async def arun(self, prompt: str, skip_rag: bool = False) -> str:
+        if not isinstance(prompt, str):
+            raise TypeError("The prompt must be a string.")
+        if not prompt:
+            return ""
+        text = await self._consume_async_generator(self.do_chain(prompt, skip_rag, self.arun_callback))
+        self._log_time("chain invoked")
+        await self.memory_assistant.add_message(prompt, text)
         self._log_time("Memory handling, done")
         return text
 
     def run_callback(self, prompt, chain):
         return chain.invoke(prompt)
 
-    async def stream(self, prompt, skip_rag = False):
-        collected_responses = ""
-        async for response in self.do_chain(prompt, skip_rag, self.stream_callback):
-            collected_responses += response
-            yield response
-        self._log_time("chain invoked")
-        self.memory_assistant.add_message(prompt, collected_responses)
-        self._log_time("Memory handling, done")
-
-    async def stream_callback(self, prompt, chain):
+    async def arun_callback(self, prompt, chain):
         try:
-            stream = chain.astream(prompt)
-            async for result in stream:
-                yield result
+            return await chain.ainvoke(prompt)
         except Exception as e:
-            print(e)
-        finally:
-            stream.aclose()
+            print(f"Error in arun_callback: {e}")
+            return ""
 
+    async def stream(self, prompt: str, skip_rag: bool = False) -> AsyncGenerator[str, None]:
+        if not isinstance(prompt, str):
+            raise TypeError("The prompt must be a string.")
+        if prompt:
+            collected_responses = ""
+            async for response in self.do_chain(prompt, skip_rag, self.stream_callback):
+                if response:
+                    collected_responses += str(response)
+                yield response
+            self._log_time("chain invoked")
+            await self.memory_assistant.add_message(prompt, collected_responses)
+            self._log_time("Memory handling, done")
+
+    async def stream_callback(self, prompt, chain) -> AsyncGenerator:
+        yield chain.astream(prompt)
 
     def _stats_callback(self, stats):
         if self.debug_mode:
             print(f"Prompt size: {stats['prompt_size']} characters")
         self.stats.update(stats)
 
-    def do_chain(self, prompt, skip_rag = False, callback = None):
+    async def do_chain(self, prompt, skip_rag=False, callback=run_callback) -> AsyncIterator[str]:
         self._log_time("do_chain start")
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
         history = "\n".join([message.content for message in self.memory_assistant.messages]) if self.config.use_memory else ""
 
-        """ test without rag, to see the difference """
         if skip_rag:
             response_message = self.model.invoke(prompt)
-#            print("Without RAG:")
-#            print(response_message)
-#            print("---")
-            return response_message
+            yield response_message
+            return
+
         today = datetime.datetime.now().strftime("%A, %B %d, %Y %I:%M %p")
         agent_info = self.config.name + " using " + self.config.model_name
 
-        # @todo: session id to separate conversations
         chain = (
             RunnablePassthrough.assign(
-                    global_store=lambda input: Agent.format_docs(input["global_store"]),
-                    session_store=lambda input: Agent.format_docs(input["session_store"]),
-                    context=lambda input: self.inline_context,
-                    history=lambda input: history,
-                    today=lambda input: today,
-                    agent=lambda input: agent_info
+                global_store=lambda input: Agent.format_docs(input["global_store"]),
+                session_store=lambda input: Agent.format_docs(input["session_store"]),
+                context=lambda input: self.inline_context,
+                history=lambda input: history,
+                today=lambda input: today,
+                agent=lambda input: agent_info
             )
             | rag_prompt
             | InspectableRunnable(statsCallback=self._stats_callback)
@@ -296,9 +343,21 @@ class Agent:
 
         try:
             if callback:
-                return callback({"global_store": agent_docs, "session_store": user_docs, "question": prompt}, chain)
+                result = callback({"global_store": agent_docs, "session_store": user_docs, "question": prompt}, chain)
+                if hasattr(result, "__aiter__"):
+                    async for item in result:
+                        # consume the possible async generator:
+                        if hasattr(item, "__aiter__"):
+                            async for sub_item in item:
+                                yield sub_item
+                        else:
+                            yield item
+                else:
+                    yield result
+            else:
+                print("No callback provided, using default chain invocation.")
         except Exception as e:
-            print(e)
+            print(f"Error in do_chain: {e}")
 
     def get_summary_memory(self):
         return self.memory_assistant.summary_memory

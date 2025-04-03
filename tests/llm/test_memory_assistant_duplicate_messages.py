@@ -5,7 +5,6 @@ Agent-Assembly-Line
 import unittest, aiounittest
 import json
 import os
-import asyncio
 import tempfile
 from unittest.mock import AsyncMock
 from agent_assembly_line.memory_assistant import MemoryAssistant, MemoryStrategy
@@ -30,8 +29,8 @@ class TestMemoryAssistant(aiounittest.AsyncTestCase):
         self.memory_assistant.auto_save_interval_sec = 1
         self.memory_assistant.auto_save_message_count = 1
 
-        self.memory_assistant.add_message("Hello Message 1", "Hi there! Answer 1")
-        self.memory_assistant.add_message("How are you? Message 2", "I'm good, thanks! Answer 2")
+        await self.memory_assistant.add_message("Hello Message 1", "Hi there! Answer 1")
+        await self.memory_assistant.add_message("How are you? Message 2", "I'm good, thanks! Answer 2")
 
         # Mock existing messages in the file
         existing_messages = [
@@ -66,7 +65,6 @@ class TestMemoryAssistant(aiounittest.AsyncTestCase):
             ), f"Expected message not found: {expected_message}")
 
     async def test_load_messages(self):
-        # Mock existing messages in the file
         existing_messages = [
             {"id": "human-1", "type": "human", "content": "Hello"},
             {"id": "ai-1", "type": "ai", "content": "Hi there!"}
@@ -74,10 +72,8 @@ class TestMemoryAssistant(aiounittest.AsyncTestCase):
         with open(self.config.memory_path, 'w') as f:
             json.dump(existing_messages, f)
 
-        # Load messages
-        self.memory_assistant.load_messages(self.config.memory_path)
+        await self.memory_assistant.load_messages(self.config.memory_path)
 
-        # Verify that the messages were loaded correctly
         self.assertEqual(len(self.memory_assistant.messages), 2)
         self.assertEqual(self.memory_assistant.messages[0].content, "Hello")
         self.assertEqual(self.memory_assistant.messages[1].content, "Hi there!")

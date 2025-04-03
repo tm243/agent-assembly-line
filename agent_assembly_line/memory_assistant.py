@@ -22,11 +22,24 @@ class MemoryStrategy(enum.Enum):
     HISTORY = 2
 
 class MemoryAssistant():
+    """
+    MemoryAssistant class to manage the memory of the agent
+    It can be used to store and retrieve messages from the memory.
+    It supports different strategies for memory management, such as:
+    - NO_MEMORY: No memory is used
+    - SUMMARY: Summarize the memory
+    - HISTORY: Store the entire history of the conversation
+    - combined strategies of summary and history
+    The class is asynchronous and can be used in an async context.
+    """
     strategy = MemoryStrategy.NO_MEMORY
     summary_memory = ""
     max_messages_in_buffer = 10 # affects response time of LLM
     auto_save_interval_sec = 30
     auto_save_message_count = 10  # Auto-save every 10 messages
+
+    stop_event = None
+    auto_save_task = None
 
     def __init__(self, strategy=MemoryStrategy.NO_MEMORY, model=None, config=None):
         self.config = config
@@ -36,6 +49,10 @@ class MemoryAssistant():
         self.auto_save_path = config.memory_path
         self.message_count_since_last_save = 0
 
+    async def start_saving(self):
+        """
+        Starts the auto-save task in a separate thread
+        """
         self.stop_event = threading.Event()
         self.auto_save_task = threading.Thread(target=self._auto_save_periodically)
         self.auto_save_task.daemon = True
@@ -46,7 +63,7 @@ class MemoryAssistant():
         self.messages = []
         self.strategy = MemoryStrategy.NO_MEMORY
 
-    def add_message(self, prompt, answer):
+    async def add_message(self, prompt, answer):
         if self.config.debug:
             print(f"MemoryAssistant: Adding message: {prompt} -> {answer[:30]}...")
         timestamp = time.time()
@@ -60,16 +77,17 @@ class MemoryAssistant():
             self.message_count_since_last_save = 0
 
         if self.strategy == MemoryStrategy.SUMMARY:
-            self.summarize_memory()
+            await self.summarize_memory()
 
-    def summarize_memory(self):
+    async def summarize_memory(self):
         history = "\n".join([message.content for message in self.messages])
-        try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(self._a_invoke_model(history))
-        except RuntimeError:
+        # try:
+            # loop = asyncio.get_running_loop()
+            # loop.create_task(self._a_invoke_model(history))
+        # except RuntimeError:
             # no event loop found: running in a non-async context
-            self._invoke_model(history)
+            # self._invoke_model(history)
+        await self._a_invoke_model(history)
         if self.config.debug:
             print("MemoryAssistant: Summary memory task created")
 
@@ -121,7 +139,7 @@ class MemoryAssistant():
         except Exception as e:
             print("Error saving messages: ", e)
 
-    def load_messages(self, file_path):
+    async def load_messages(self, file_path):
         try:
             if os.path.exists(file_path):
                 if self.config.debug:
@@ -138,7 +156,7 @@ class MemoryAssistant():
         except Exception as e:
             print("Error loading messages: ", e, file_path)
         finally:
-            self.summarize_memory()
+            await self.summarize_memory()
             self.trim_messages_buffer()
 
     def _message_from_dict(self, data):
@@ -171,8 +189,10 @@ class MemoryAssistant():
         self.save_messages(self.auto_save_path)
 
     async def stopSaving(self):
-        self.stop_event.set()
-        self.auto_save_task.join()
+        if self.stop_event:
+            self.stop_event.set()
+        if self.auto_save_task:
+            self.auto_save_task.join()
         await asyncio.to_thread(self.save_messages, self.auto_save_path)
         self.messages = []
         self.summary_memory = ""
@@ -189,16 +209,16 @@ class NoMemory():
         if config and config.debug:
             print("NoMemory: Initialized")
 
-    def add_message(self, prompt, answer):
+    async def add_message(self, prompt, answer):
         pass
 
-    def load_messages(self, file_path):
+    async def load_messages(self, file_path):
         pass
 
     def save_messages(self, file_path):
         pass
 
-    def stopSaving(self):
+    async def stopSaving(self):
         pass
 
     def cleanup(self):

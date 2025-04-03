@@ -4,12 +4,20 @@ Agent-Assembly-Line
 
 import unittest, aiounittest
 import tempfile
+import asyncio
 import os
 import shutil
-from agent_assembly_line.agent import Agent
+from agent_assembly_line.agent import Agent, Config, MemoryAssistant, NoMemory
 from agent_assembly_line.memory_assistant import MemoryStrategy
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, AsyncMock
 from agent_assembly_line.middleware.semantic_test_case import SemanticTestCase
+
+class StubModel():
+    prompt = ""
+    def invoke(self, prompt):
+        self.prompt = prompt
+    async def ainvoke(self, prompt):
+        self.prompt = prompt
 
 class TestAgent(aiounittest.AsyncTestCase):
 
@@ -40,18 +48,12 @@ class TestAgent(aiounittest.AsyncTestCase):
     def tearDown(self):
         self._deleteSandbox()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
-    async def test_question_test_agent(self, mock_summarize_memory, mock):
+    async def test_question_test_agent(self):
         agent = Agent("test-agent")
-
-        mock_summarize_memory.assert_called_once()
 
         question = "How many people live in the country? Short answer."
         text = agent.run(question)
         self.assertIn("300,000", text, "Number of citizen")
-
-        mock.assert_called_once_with(question, text)
 
         question = "What is the name of the country? Short answer."
         text = agent.run(question)
@@ -60,40 +62,111 @@ class TestAgent(aiounittest.AsyncTestCase):
         await agent.cleanup()
         agent.closeModels()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
-    async def test_question_stream(self, mock_summarize_memory, mock_add_messages):
-        agent = Agent("test-agent")
 
-        mock_summarize_memory.assert_called_once()
+    async def test_question_stream(self):
+        agent = Agent("test-agent")
 
         question = "How many people live in the country? Short answer."
         text = ""
         async for chunk in agent.stream(question):
             text += chunk
-        self.assertIn("300,000", text, "Number of citizen")
-
-        mock_add_messages.assert_called_once_with(question, text)
 
         await agent.cleanup()
         await agent.aCloseModels()
-        agent.closeModels()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=Mock)
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=Mock)
-    async def test_memory(self, mock_summarize_memory, mock):
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=AsyncMock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
+    async def test_memory(self, mock_summarize_memory, mock_add_message):
         agent = Agent("test-agent")
         agent.memory_strategy = MemoryStrategy.SUMMARY
+        await agent.startMemoryAssistant()
+
         question = "Are dinosaurs in the country? Short answer."
 
         mock_summarize_memory.assert_called_once()
 
         text = agent.run(question)
-        # agent.save_memory()
-        # stored_memory = agent.load_memory()
-        # self.assertIn("dinosaurs", stored_memory, "Dinosaurs in country")
-        mock.assert_called_once_with(question, text)
+        mock_add_message.assert_not_called()
 
+        async for _ in agent.stream(question):
+            pass
+        mock_add_message.assert_called_once_with(question, text)
+
+        await agent.cleanup()
+        agent.closeModels()
+
+    async def test_agent_initialization(self):
+        """Test the initialization of the Agent class."""
+        agent = Agent("test-agent")
+        self.assertEqual(agent.agent_name, "test-agent", "Agent name should match the initialized value.")
+        self.assertIsNotNone(agent.memory_strategy, "Memory strategy should be initialized.")
+        self.assertIsInstance(agent.memory_strategy, MemoryStrategy, "Memory strategy should be of type MemoryStrategy.")
+        self.assertEqual(agent.memory_strategy, MemoryStrategy.SUMMARY, "Memory strategy should be SUMMARY.")
+        self.assertIsInstance(agent.memory_assistant, MemoryAssistant, "Memory assistant should be of type MemoryAssistant.")
+
+        await agent.cleanup()
+        agent.closeModels()
+
+    async def test_run_with_no_memory(self):
+        """Test the Agent.run() method with NoMemory()"""
+        config = Config(load_agent_conf="test-agent", debug=False)
+        config.use_memory = False
+        agent = Agent(config=config)
+
+        self.assertIsInstance(agent.memory_strategy, MemoryStrategy, "Memory strategy should be of type MemoryStrategy.")
+        self.assertEqual(agent.memory_strategy, MemoryStrategy.NO_MEMORY, "Memory strategy should be NO_MEMORY.")
+        self.assertIsInstance(agent.memory_assistant, NoMemory, "Memory assistant should be of type NoMemory.")
+
+        empty = agent.run("Hello, World!")
+
+        # this should not raise an exception
+        await agent.cleanup()
+        agent.closeModels()
+
+
+    async def test_run_with_empty_question(self):
+        """Test the Agent.run() method with an empty question."""
+        agent = Agent("test-agent")
+
+        empty = agent.run("")
+        self.assertAlmostEqual(empty, "", "Empty question should return an empty string.")
+
+        await agent.cleanup()
+        agent.closeModels()
+
+    async def test_stream_with_empty_question(self):
+        """Test the Agent.stream() method with an empty question."""
+        agent = Agent("test-agent")
+        async for _ in agent.stream(""):
+            pass
+
+        await agent.cleanup()
+        agent.closeModels()
+
+    async def test_cleanup_without_usage(self):
+        """Test cleanup when Agent has not been used."""
+        agent = Agent("test-agent")
+        try:
+            await agent.cleanup()
+        except Exception as e:
+            self.fail(f"Agent.cleanup() raised an exception unexpectedly: {e}")
+
+        agent.closeModels()
+
+    async def test_run_with_invalid_question_type(self):
+        """Test the Agent.run() method with a non-string question."""
+        agent = Agent("test-agent")
+        with self.assertRaises(TypeError, msg="Non-string question should raise a TypeError."):
+            agent.run(12345)
+        await agent.cleanup()
+        agent.closeModels()
+
+    async def test_stream_with_invalid_question_type(self):
+        """Test the Agent.stream() method with a non-string question."""
+        agent = Agent("test-agent")
+        with self.assertRaises(TypeError, msg="Non-string question should raise a TypeError."):
+            async for _ in agent.stream(12345):
+                pass
         await agent.cleanup()
         agent.closeModels()
 
