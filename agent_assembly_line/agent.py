@@ -233,9 +233,7 @@ class Agent:
             else:
                 text = loop.run_until_complete(self._consume_async_generator(self.do_chain(prompt, skip_rag, self.arun_callback)))
         except RuntimeError:
-            loop = asyncio.new_event_loop()
-            text = loop.run_until_complete(self._consume_async_generator(self.do_chain(prompt, skip_rag, self.run_callback)))
-            loop.close()
+            text = asyncio.run(self._consume_async_generator(self.do_chain(prompt, skip_rag, self.run_callback)))
 
         self._log_time("chain invoked")
         return text
