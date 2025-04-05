@@ -4,6 +4,7 @@ Agent-Assembly-Line
 
 import os, re
 import shutil
+import asyncio
 
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -22,6 +23,12 @@ from langchain_core.messages import (
 app = FastAPI()
 agent_manager = AgentManager()
 agent_manager.select_agent("chat-demo", debug=True)
+
+def start_memory_assistant():
+    agent = agent_manager.get_agent()
+    asyncio.create_task(agent.startMemoryAssistant())
+
+start_memory_assistant()
 
 class RequestItem(BaseModel):
     prompt: str

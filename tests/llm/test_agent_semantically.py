@@ -67,10 +67,8 @@ class TestAgent(AioSemanticTestCase):
         agent.closeModels()
         self.agent_manager.cleanup()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
-    async def test_question(self, mock_summarize_memory):
-        await self.agent_manager.select_agent("test-agent", debug=False)
-        mock_summarize_memory.assert_called_once()
+    async def test_question(self):
+        self.agent_manager.select_agent("test-agent", debug=False)
         agent = self.agent_manager.get_agent()
 
         question = "How many people live in the country? Short answer."

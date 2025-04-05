@@ -43,17 +43,16 @@ class TestAgentManager(aiounittest.AsyncTestCase):
 
     @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
     async def test_select_agent(self, mock_summarize_memory):
-        agent = await self.agent_manager.select_agent("test-agent", debug=False)
+        agent = self.agent_manager.select_agent("test-agent", debug=False)
+        await agent.startMemoryAssistant()
         mock_summarize_memory.assert_called_once()
         self.assertEqual(agent.agent_name, "test-agent")
         await agent.cleanup()
         agent.closeModels()
         self.agent_manager.cleanup()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
-    async def test_question(self, mock_summarize_memory):
-        await self.agent_manager.select_agent("test-agent", debug=False)
-        mock_summarize_memory.assert_called_once()
+    async def test_question(self):
+        self.agent_manager.select_agent("test-agent", debug=False)
         agent = self.agent_manager.get_agent()
 
         question = "How many people live in the country? Short answer."
@@ -68,15 +67,16 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         agent.closeModels()
         self.agent_manager.cleanup()
 
-    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=AsyncMock)
     @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
-    async def test_memory(self, mock_summarize_memory, mock):
-        await self.agent_manager.select_agent("test-agent", debug=False)
-        mock_summarize_memory.assert_called_once()
+    async def test_memory(self, mock_summarize_memory):
+        self.agent_manager.select_agent("test-agent", debug=False)
         agent = self.agent_manager.get_agent()
+        await agent.startMemoryAssistant()
         agent.memory_strategy = MemoryStrategy.SUMMARY
-        question = "Are dinosaurs in the country? Short answer."
 
+        mock_summarize_memory.assert_called_once()
+
+        question = "Are dinosaurs in the country? Short answer."
         text = agent.run(question)
         # agent.save_memory()
         # stored_memory = agent.load_memory()
