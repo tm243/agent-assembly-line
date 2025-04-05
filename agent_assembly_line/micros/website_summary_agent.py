@@ -10,6 +10,8 @@ class WebsiteSummaryAgent(Agent):
     A small agent specialized in summarizing a website. Chose between local and cloud mode.
     """
 
+    purpose = "Summarizes a given website into a concise summary."
+
     def __init__(self, url, mode='local'):
         self.config = Config()
 

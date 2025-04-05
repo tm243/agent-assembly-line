@@ -10,6 +10,8 @@ class ClarityAgent(Agent):
     A small agent specialized in telling if a text is clear. Chose between local and cloud mode.
     """
 
+    purpose = "Tells if a text is clear, readable, and understandable."
+
     def __init__(self, text, mode='local'):
         self.config = Config()
 

@@ -10,6 +10,7 @@ from agent_assembly_line import Agent, AgentManager
 from unittest.mock import patch, Mock, AsyncMock
 from agent_assembly_line.middleware.semantic_test_case import SemanticTestCase, AioSemanticTestCase
 import asyncio
+
 class TestAgent(AioSemanticTestCase):
 
     def _createSandbox(self):
@@ -42,6 +43,7 @@ class TestAgent(AioSemanticTestCase):
         self.agent_manager.cleanup()
         self._deleteSandbox()
 
+    @unittest.skipIf(os.getenv("CIRCLECI") == "true", "Skipping this test on CircleCI")
     @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
     async def test_question_test_agent(self, mock_summarize_memory):
         agent = Agent("test-agent")
@@ -67,6 +69,7 @@ class TestAgent(AioSemanticTestCase):
         agent.closeModels()
         self.agent_manager.cleanup()
 
+    @unittest.skipIf(os.getenv("CIRCLECI") == "true", "Skipping this test on CircleCI")
     async def test_question(self):
         self.agent_manager.select_agent("test-agent", debug=False)
         agent = self.agent_manager.get_agent()

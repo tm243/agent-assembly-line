@@ -11,6 +11,8 @@ class SentimentAgent(Agent):
     A small agent specialized in detecting sentiment. Chose between local and cloud mode.
     """
 
+    purpose = "Detects the sentiment of a given text."
+
     def __init__(self, text, mode='local'):
         """
         Initializes the SentimentAgent with the given text and mode.
@@ -47,7 +49,7 @@ class SentimentAgent(Agent):
             raise ValueError("Invalid mode. Choose either 'local' or 'cloud'.")
 
         self.config.load_conf_dict({
-            "name": "yes-no-agent-demo",
+            "name": "sentiment-demo",
             "prompt": { "inline_rag_templates": inline_rag_template },
             "llm": {
                 "model-identifier": model_identifier,

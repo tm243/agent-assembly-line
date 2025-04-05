@@ -10,6 +10,8 @@ class IntentAgent(Agent):
     A small agent specialized in detecting intention. Chose between local and cloud mode.
     """
 
+    purpose = "Detects the user's intention in a given text."
+
     def __init__(self, text, mode='local'):
         self.config = Config()
 

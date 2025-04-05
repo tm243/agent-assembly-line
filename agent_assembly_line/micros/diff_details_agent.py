@@ -10,6 +10,8 @@ class DiffDetailsAgent(Agent):
     An agent specialized in providing a textual representation of code changes in text format.
     """
 
+    purpose = "Provides a textual representation of code changes in text format, useful for explaining changes in a commit, diff walk through, or why something was changed."
+
     def __init__(self, diff_text):
         """
         Initializes the DiffDetailsAgent with the given Git diff text.

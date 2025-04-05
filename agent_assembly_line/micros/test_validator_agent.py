@@ -10,6 +10,8 @@ class TestValidatorAgent(Agent):
     A small agent that validates strings in tests.
     """
 
+    purpose = "Validates if a statement is true or false based on the provided context."
+
     def __init__(self, mode='local', llm="ollama:gemma3:4b", embeddings="nomic-embed-text"):
         self.config = Config()
 

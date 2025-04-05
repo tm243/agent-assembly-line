@@ -10,6 +10,8 @@ class DiffSumAgent(Agent):
     A small agent specialized in summarizing code changes and generating commit messages.
     """
 
+    purpose = "Summarizes code changes and generates concise commit messages, use also when the user asks what changed, or for a summary of changes. Do not use when the user asks for an explanation."
+
     def __init__(self, text):
         """
         Initializes the DiffSumAgent with the given text.

@@ -11,6 +11,8 @@ class YesNoAgent(Agent):
     A small agent specialized in reducing a statement to Yes or No. Chose between local and cloud mode.
     """
 
+    purpose = "Reduces a statement to a simple 'Yes' or 'No'."
+    
     def __init__(self, text, mode='local'):
         self.config = Config()
 

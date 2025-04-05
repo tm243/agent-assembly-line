@@ -107,7 +107,9 @@ class TestAgent(aiounittest.AsyncTestCase):
         await agent.cleanup()
         agent.closeModels()
 
-    async def test_run_with_no_memory(self):
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=AsyncMock)
+    @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
+    async def test_run_with_no_memory(self, add_message_mock, summarize_memory_mock):
         """Test the Agent.run() method with NoMemory()"""
         config = Config(load_agent_conf="test-agent", debug=False)
         config.use_memory = False
@@ -117,9 +119,11 @@ class TestAgent(aiounittest.AsyncTestCase):
         self.assertEqual(agent.memory_strategy, MemoryStrategy.NO_MEMORY, "Memory strategy should be NO_MEMORY.")
         self.assertIsInstance(agent.memory_assistant, NoMemory, "Memory assistant should be of type NoMemory.")
 
-        empty = agent.run("Hello, World!")
+        agent.run("Hello, World!")
 
-        # this should not raise an exception
+        add_message_mock.assert_not_called()
+        summarize_memory_mock.assert_not_called()
+
         await agent.cleanup()
         agent.closeModels()
 

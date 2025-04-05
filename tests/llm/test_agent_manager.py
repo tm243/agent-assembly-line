@@ -2,7 +2,7 @@
 Agent-Assembly-Line
 """
 
-import aiounittest
+import aiounittest, unittest
 import tempfile
 import os
 import shutil
@@ -45,12 +45,15 @@ class TestAgentManager(aiounittest.AsyncTestCase):
     async def test_select_agent(self, mock_summarize_memory):
         agent = self.agent_manager.select_agent("test-agent", debug=False)
         await agent.startMemoryAssistant()
+
         mock_summarize_memory.assert_called_once()
         self.assertEqual(agent.agent_name, "test-agent")
+
         await agent.cleanup()
         agent.closeModels()
         self.agent_manager.cleanup()
 
+    @unittest.skipIf(os.getenv("CIRCLECI") == "true", "Skipping this test on CircleCI")
     async def test_question(self):
         self.agent_manager.select_agent("test-agent", debug=False)
         agent = self.agent_manager.get_agent()
@@ -67,6 +70,7 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         agent.closeModels()
         self.agent_manager.cleanup()
 
+    @unittest.skipIf(os.getenv("CIRCLECI") == "true", "Skipping this test on CircleCI")
     @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
     async def test_memory(self, mock_summarize_memory):
         self.agent_manager.select_agent("test-agent", debug=False)

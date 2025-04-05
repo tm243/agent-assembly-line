@@ -12,6 +12,8 @@ class FmiWeatherAgent(Agent):
     A small agent specialized in Finnish weather. Chose between local and cloud mode.
     """
 
+    purpose = "Provides weather forecasts for Finland, specifically Helsinki."
+
     def __init__(self, place = "Helsinki", forecast_hours = 6, mode='local'):
         self.config = Config()
         self.loader = XmlRemoteLoader()

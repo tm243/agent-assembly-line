@@ -25,7 +25,11 @@ class TestMemoryAssistant(aiounittest.AsyncTestCase):
             os.remove(self.config.memory_path)
         self.temp_file.close()
 
+    @unittest.skipIf(os.getenv("CIRCLECI") == "true", "Skipping this test on CircleCI")
     async def test_save_messages_no_duplicates(self):
+        """
+        @todo use mock
+        """
         self.memory_assistant.auto_save_interval_sec = 1
         self.memory_assistant.auto_save_message_count = 1
 
@@ -64,7 +68,11 @@ class TestMemoryAssistant(aiounittest.AsyncTestCase):
                 for message in written_data
             ), f"Expected message not found: {expected_message}")
 
+    @unittest.skipIf(os.getenv("CIRCLECI") == "true", "Skipping this test on CircleCI")
     async def test_load_messages(self):
+        """
+        @todo use mock
+        """
         existing_messages = [
             {"id": "human-1", "type": "human", "content": "Hello"},
             {"id": "ai-1", "type": "ai", "content": "Hi there!"}

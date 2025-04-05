@@ -11,6 +11,8 @@ class OneWordAgent(Agent):
     A small agent specialized in reducing a statement to one single word. Chose between local and cloud mode.
     """
 
+    purpose = "Reduces a statement to one single word."
+
     def __init__(self, text, mode='local'):
         self.config = Config()
 

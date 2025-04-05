@@ -10,6 +10,8 @@ class SumAgent(Agent):
     A small agent specialized in summarizing text. Chose between local and cloud mode.
     """
 
+    purpose = "Summarizes a given text into a concise summary."
+
     def __init__(self, text, mode='local'):
         """
         Initializes the SumAgent with the given text and mode.
