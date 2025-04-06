@@ -2,6 +2,7 @@
 Agent-Assembly-Line
 """
 
+import re
 from agent_assembly_line.agent import Agent
 from agent_assembly_line.config import Config
 
@@ -10,10 +11,13 @@ class WebsiteSummaryAgent(Agent):
     A small agent specialized in summarizing a website. Chose between local and cloud mode.
     """
 
-    purpose = "Summarizes a given website into a concise summary."
+    purpose = "Summarizes a given website into a concise summary. Use this agent if the user  contains a link, http, https, url."
 
-    def __init__(self, url, mode='local'):
+    def __init__(self, prompt, mode='local'):
         self.config = Config()
+
+        url = self._extract_url(prompt)
+        self.add_inline_text(prompt)
 
         inline_rag_template = """
         You are a helpful AI assistant specialized in summarizing websites.
@@ -52,3 +56,14 @@ class WebsiteSummaryAgent(Agent):
 
     def run(self, prompt="Summarize the following text from the website in 6-8 sentences, capturing the main idea and key details."):
         return super().run(prompt)
+
+    def _extract_url(self, prompt):
+        """
+        Extracts the URL from the given prompt.
+        """
+        url_pattern = r'(https?://[^\s]+)'
+        match = re.search(url_pattern, prompt)
+        if match:
+            return match.group(0)
+        else:
+            raise ValueError("No valid URL found in the prompt.")

@@ -14,7 +14,7 @@ class FmiWeatherAgent(Agent):
 
     purpose = "Provides weather forecasts for Finland, specifically Helsinki."
 
-    def __init__(self, place = "Helsinki", forecast_hours = 6, mode='local'):
+    def __init__(self, prompt="Helsinki", forecast_hours=6, mode='local'):
         self.config = Config()
         self.loader = XmlRemoteLoader()
 
@@ -44,8 +44,6 @@ class FmiWeatherAgent(Agent):
         elif mode == 'cloud':
             model_identifier = "openai:gpt-4o"
             embeddings = "text-embedding-ada-002"
-        else:
-            raise ValueError("Invalid mode. Choose either 'local' or 'cloud'.")
 
         self.config.load_conf_dict({
             "name": "weather-demo",
@@ -56,6 +54,8 @@ class FmiWeatherAgent(Agent):
             },
         })
         super().__init__(config=self.config)
+
+        place = self._extract_city_name_with_llm(prompt)
 
         handler = FmiForecastParser(place=place, forecast_time=forecast_hours)
         doc = self.loader.load_data(handler.url, handler.params, parser=handler)
@@ -72,6 +72,51 @@ class FmiWeatherAgent(Agent):
             self.add_inline_text(human_string)
         else:
             print("Failed to fetch weather data.")
+
+    important_city_names = [
+        "Helsinki", "Espoo", "Vantaa", "Tampere", "Oulu", "Turku", "Jyväskylä",
+        "Lahti", "Kuopio", "Pori", "Lappeenranta", "Joensuu", "Rovaniemi",
+        "Vaasa", "Kotka", "Jyvaskyla", "Hämeenlinna", "Seinäjoki", "Kouvola", "Salo",
+        "Porvoo", "Nurmijärvi", "Rauma", "Järvenpää", "Kerava", "Ylöjärvi",
+        "Lohja", "Kokkola", "Raisio", "Tampereen", "Kemi", "Mikkeli",
+        "Tornio", "Savonlinna", "Kouvola", "Hyvinkää", "Rovaniemi",
+        "Kajaani", "Iisalmi", "Imatra", "Kangasala", "Päijät-Häme",
+        "Lapinlahti", "Ruokolahti", "Suonenjoki", "Kemiönsaari", "Salla",
+        "Ruokolahti", "Kuhmo", "Lieksa", "Ylivieska", "Salla",
+        "Rautavaara", "Ruokolahti", "Salla", "Kuhmo", "Lieksa",
+        "Ylivieska", "Salla", "Rautavaara", "Ruokolahti", "Kuhmo",
+        "Lieksa", "Ylivieska", "Salla", "Rautavaara", "Ruokolahti",
+        "Kuhmo", "Lieksa", "Ylivieska", "Salla", "Rautavaara",
+    ]
+
+    def _extract_city_name_with_llm(self, prompt):
+        """
+        Uses an LLM to extract the city name or place from the given prompt.
+        """
+
+        extraction_prompt = f"""
+        Extract the name of the city or place mentioned in the following text.
+        If no city or place is mentioned, return "Helsinki".
+
+        Only return the name of the city or place, without any additional text.
+
+        If the name of the city is misspelled, correct it.
+        If the name of the city is not in Finnish, translate it to Finnish.
+
+        Text: "{prompt}"
+        """
+
+        # This saves us a roundtrip to the model
+        for city in self.important_city_names:
+            if city.lower() in prompt.lower():
+                return city
+
+        # Otherwise we use the LLM to extract the city name (and correct it)
+        response = super().run(extraction_prompt)
+        city_name = response.strip().replace("**", "").replace('"', '').replace("'", "").strip()
+        if not city_name:
+            return "Helsinki"
+        return city_name
 
     def run(self, prompt="What will the weather be like today?"):
         return super().run(prompt)

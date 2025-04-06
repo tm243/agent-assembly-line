@@ -10,7 +10,13 @@ class SumAgent(Agent):
     A small agent specialized in summarizing text. Chose between local and cloud mode.
     """
 
-    purpose = "Summarizes a given text into a concise summary."
+    purpose = (
+        "This agent specializes in summarizing text into concise summaries. "
+        "It should only be chosen when the user explicitly requests a summary, "
+        "a short answer, or a concise explanation. Do not use this agent for "
+        "general questions, detailed answers, or unrelated tasks."
+        "Do not use it when the user wants a long answer, a detailed answer, or a long explanation."
+    )
 
     def __init__(self, text, mode='local'):
         """
