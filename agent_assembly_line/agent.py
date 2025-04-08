@@ -50,6 +50,11 @@ class Agent:
     memory_assistant = NoMemory()
     inline_context = ""
 
+    # These attributes are used for routing and managing
+    # allocated agents by external decorators.
+    _router = None
+    _allocated_agents = []
+
     def __init__(self, agent_name = None, debug = False, config = None):
         if agent_name:
             self.agent_name = agent_name
@@ -86,13 +91,34 @@ class Agent:
         self.user_uploaded_files = []
         self.user_added_urls = []
 
+    @staticmethod
+    def _check_opened_clients(model=None):
+        import httpx
+        if model:
+            if model._async_client._client._state not in [httpx._client.ClientState.UNOPENED, httpx._client.ClientState.CLOSED]:
+                print("model async client:", model._async_client._client._state, ", use aCloseModels()")
+            if model._client._client._state not in [httpx._client.ClientState.UNOPENED, httpx._client.ClientState.CLOSED]:
+                print("model client", model._client._client._state)
+
     def closeModels(self):
-        self.model._client._client.close()
-        self.embeddings._client._client.close()
+        try:
+            self.model._client._client.close()
+            self.embeddings._client._client.close()
+            Agent._check_opened_clients(self.model)
+            Agent._check_opened_clients(self.embeddings)
+        except Exception as e:
+            print(f"Error closing model client: {e}")
 
     async def aCloseModels(self):
-        await self.model._async_client._client.aclose()
-        await self.embeddings._async_client._client.aclose()
+        try:
+            self.model._client._client.close()
+            self.embeddings._client._client.close()
+            await self.model._async_client._client.aclose()
+            await self.embeddings._async_client._client.aclose()
+            Agent._check_opened_clients(self.model)
+            Agent._check_opened_clients(self.embeddings)
+        except Exception as e:
+            print(f"Error closing model client: {e}")
 
     async def startMemoryAssistant(self):
         await self.memory_assistant.start_saving()

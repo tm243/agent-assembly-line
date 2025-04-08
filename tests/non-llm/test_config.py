@@ -7,6 +7,7 @@ import os
 import tempfile
 import yaml
 from agent_assembly_line.config import Config
+from unittest.mock import patch
 
 class TestConfig(unittest.TestCase):
 
@@ -44,12 +45,14 @@ class TestConfig(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed to write config file: {e}")
 
-        # Set environment variables
-        os.environ['USER_AGENTS_PATH'] = self.test_dir.name + "/" + self.agent_name
+        self.env_patcher = patch.dict(os.environ, {
+            'USER_AGENTS_PATH': self.test_dir.name + "/" + self.agent_name
+        })
+        self.env_patcher.start()
 
     def tearDown(self):
-        # Cleanup the temporary directory
         self.test_dir.cleanup()
+        self.env_patcher.stop()
 
     def test_load_conf_file(self):
         config = Config(load_agent_conf=self.agent_name)

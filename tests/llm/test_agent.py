@@ -27,20 +27,21 @@ class TestAgent(aiounittest.AsyncTestCase):
         self.memory_path = os.path.join(self.config_path, "history.json")
         test_agent_path = os.path.join("tests", "test-agent")
         shutil.copytree(test_agent_path, self.config_path, dirs_exist_ok=True)
-        os.environ['USER_AGENTS_PATH'] = self.config_path
-        os.environ['LOCAL_AGENTS_PATH'] = self.config_path
-        os.environ['USER_MEMORY_PATH'] = self.memory_path
-        os.environ['LOCAL_MEMORY_PATH'] = self.memory_path
+
+        self.env_patcher = patch.dict(os.environ, {
+            'USER_AGENTS_PATH': self.config_path,
+            'LOCAL_AGENTS_PATH': self.config_path,
+            'USER_MEMORY_PATH': self.memory_path,
+            'LOCAL_MEMORY_PATH': self.memory_path,
+        })
+        self.env_patcher.start()
 
     def _deleteSandbox(self):
         self.temp_dir.cleanup()
         self.config_path = None
         self.memory_path = None
         self.temp_dir = None
-        os.environ.pop('USER_AGENTS_PATH', None)
-        os.environ.pop('LOCAL_AGENTS_PATH', None)
-        os.environ.pop('USER_MEMORY_PATH', None)
-        os.environ.pop('LOCAL_MEMORY_PATH', None)
+        self.env_patcher.stop()
 
     def setUp(self):
         self._createSandbox()
@@ -60,8 +61,7 @@ class TestAgent(aiounittest.AsyncTestCase):
         self.assertIn("Aethelland", text, "Name of country")
 
         await agent.cleanup()
-        agent.closeModels()
-
+        await agent.aCloseModels()
 
     async def test_question_stream(self):
         agent = Agent("test-agent")
@@ -93,7 +93,7 @@ class TestAgent(aiounittest.AsyncTestCase):
         mock_add_message.assert_called_once_with(question, text)
 
         await agent.cleanup()
-        agent.closeModels()
+        await agent.aCloseModels()
 
     async def test_agent_initialization(self):
         """Test the initialization of the Agent class."""
@@ -125,8 +125,7 @@ class TestAgent(aiounittest.AsyncTestCase):
         summarize_memory_mock.assert_not_called()
 
         await agent.cleanup()
-        agent.closeModels()
-
+        await agent.aCloseModels()
 
     async def test_run_with_empty_question(self):
         """Test the Agent.run() method with an empty question."""
@@ -155,7 +154,7 @@ class TestAgent(aiounittest.AsyncTestCase):
         except Exception as e:
             self.fail(f"Agent.cleanup() raised an exception unexpectedly: {e}")
 
-        agent.closeModels()
+        await agent.aCloseModels()
 
     async def test_run_with_invalid_question_type(self):
         """Test the Agent.run() method with a non-string question."""

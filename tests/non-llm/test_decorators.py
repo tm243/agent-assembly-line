@@ -86,8 +86,8 @@ class TestWithDecisionMakerDecorator(unittest.TestCase):
         instance = TestClass()
         result = self.run_async(instance.arun("test prompt"))
 
-        # Assert that the mock agent's arun method was called
-        self.assertEqual(result, "MockAgent arun with prompt: test prompt")
+        # Assert that the mock agent's run method was called (agents only do run())
+        self.assertEqual(result, "MockAgent run with prompt: test prompt")
         mock_get_agent_or_fallback.assert_called_once_with(instance, "test prompt", ["mock_agent"])
 
     def run_async(self, coro):

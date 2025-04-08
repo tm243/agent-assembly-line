@@ -15,6 +15,12 @@ test-verbose:
 	python -m unittest discover -s tests/llm -v
 	python -m unittest discover -s tests/non-llm -v
 
+stress-test:
+	@for i in {1..10}; do \
+		echo "Iteration: $$i"; \
+		python -m unittest discover -s tests; \
+	done
+
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
 

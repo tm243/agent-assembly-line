@@ -190,7 +190,11 @@ class AioSemanticTestCase(aiounittest.AsyncTestCase):
         {second}
         """
 
-        result = await self.agent.arun(prompt).strip()
+        result = await self.agent.arun(prompt)
+        if isinstance(result, str):
+            result = result.strip()
+        else:
+            raise TypeError(f"Expected result to be a string, but got {type(result).__name__}: {result}")
 
         try:
             is_semantically_equal = bool(strtobool(result))

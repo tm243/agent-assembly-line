@@ -15,20 +15,20 @@ class TestChatAgent(unittest.TestCase):
         self.memory_path = os.path.join(self.config_path, "history.json")
         test_agent_path = os.path.join("tests", "test-agent")
         shutil.copytree(test_agent_path, self.config_path, dirs_exist_ok=True)
-        os.environ['USER_AGENTS_PATH'] = self.config_path
-        os.environ['LOCAL_AGENTS_PATH'] = self.config_path
-        os.environ['USER_MEMORY_PATH'] = self.memory_path
-        os.environ['LOCAL_MEMORY_PATH'] = self.memory_path
+        self.env_patcher = patch.dict(os.environ, {
+            'USER_AGENTS_PATH': self.config_path,
+            'LOCAL_AGENTS_PATH': self.config_path,
+            'USER_MEMORY_PATH': self.memory_path,
+            'LOCAL_MEMORY_PATH': self.memory_path,
+        })
+        self.env_patcher.start()
 
     def _deleteSandbox(self):
         self.temp_dir.cleanup()
         self.config_path = None
         self.memory_path = None
         self.temp_dir = None
-        os.environ.pop('USER_AGENTS_PATH', None)
-        os.environ.pop('LOCAL_AGENTS_PATH', None)
-        os.environ.pop('USER_MEMORY_PATH', None)
-        os.environ.pop('LOCAL_MEMORY_PATH', None)
+        self.env_patcher.stop()
 
     def setUp(self):
         self._createSandbox()
