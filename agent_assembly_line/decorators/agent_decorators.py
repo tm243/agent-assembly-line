@@ -18,7 +18,8 @@ def _get_agent_or_fallback(self, prompt, white_list):
         if selected_agent not in white_list:
             return None
 
-        agent_class = self._router(selected_agent)
+        agent_class = self._router.get_agent(selected_agent)
+        print("[agent router] selected agent:", selected_agent)
         agent = agent_class(prompt)
         self._allocated_agents.append(agent)
         return agent
@@ -47,37 +48,40 @@ def agent_router(allowed_agents=None):
         def run_with_agent_router(self, prompt, *args, **kwargs):
             agent = _get_agent_or_fallback(self, prompt, allowed_agents)
             if agent:
-                return agent.run()
+                agent_result = agent.run()
+                self.add_inline_text(agent_result)
             return original_run(self, prompt, *args, **kwargs)
 
         async def arun_with_agent_router(self, prompt, *args, **kwargs):
             agent = _get_agent_or_fallback(self, prompt, allowed_agents)
             if agent:
-                return agent.run()
+                agent_result = agent.run()
+                self.add_inline_text(agent_result)
             if original_arun:
                 return await original_arun(self, prompt, *args, **kwargs)
-            raise NotImplementedError("arun method is not implemented.")
+            else:
+                raise NotImplementedError("arun method is not implemented.")
 
         async def stream_with_agent_router(self, prompt, *args, **kwargs):
             agent = _get_agent_or_fallback(self, prompt, allowed_agents)
             if agent:
-                # no stream() in agents
-                yield agent.run()
-            elif original_stream:
+                agent_result = agent.run()
+                self.add_inline_text(agent_result)
+            if original_stream:
                 async for item in original_stream(self, prompt, *args, **kwargs):
                     yield item
             else:
                 raise NotImplementedError("stream method is not implemented.")
 
-        async def cleanup_with_router(self, *args, **kwargs):
+        def cleanup_with_router(self, *args, **kwargs):
             if original_cleanup:
-                await original_cleanup(self, *args, **kwargs)
+                original_cleanup(self, *args, **kwargs)
 
             if hasattr(self, "_router") and self._router:
-                await self._router.cleanup()
+                self._router.cleanup()
 
             for agent in self._allocated_agents:
-                await agent.cleanup()
+                agent.cleanup()
 
         def close_models_with_router(self, *args, **kwargs):
             if original_close_models:

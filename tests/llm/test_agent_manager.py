@@ -50,9 +50,11 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         mock_summarize_memory.assert_called_once()
         self.assertEqual(agent.agent_name, "test-agent")
 
-        await agent.cleanup()
+        await agent.stopMemoryAssistant()
+        agent.cleanup()
         agent.closeModels()
         self.agent_manager.cleanup()
+
 
     @unittest.skipIf(os.getenv("CIRCLECI") == "true", "Skipping this test on CircleCI")
     async def test_question(self):
@@ -67,7 +69,7 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         text = agent.run(question)
         self.assertIn("Aethelland", text, "Name of country")
 
-        await agent.cleanup()
+        agent.cleanup()
         await agent.aCloseModels()
         self.agent_manager.cleanup()
 
@@ -87,7 +89,8 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         # stored_memory = agent.load_memory()
         # self.assertIn("dinosaurs", stored_memory, "Dinosaurs in country")
         # mock.assert_called_once_with(question, text)
-        await agent.cleanup()
+        await agent.stopMemoryAssistant()
+        agent.cleanup()
         await agent.aCloseModels()
         self.agent_manager.cleanup()
 

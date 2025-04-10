@@ -137,7 +137,7 @@ class FmiForecastParser(BaseDictParser):
             data = raw_dict
             member = data['wfs:FeatureCollection']['wfs:member']
             weather_data = self._parse_weather_data(member)
-            print("Data for", len(weather_data), "hours fetched")
+            print("[forecast parser] data for", len(weather_data), "hours fetched")
             return weather_data
         except KeyError as e:
             print(f"Missing expected key in raw_dict: {e}")
@@ -151,15 +151,29 @@ class FmiForecastParser(BaseDictParser):
         Convert weather data to a string representation.
         """
         result = f"Forecast for {self.place} in {self.forecast_time} hours\n\n"
-        for time, data in weather_data.items():
-            line = f"{time}:"
-            for key, value in data.items():
-                line += f" {key}: {FmiForecastParser.translate_value(value, key)} ({value}) {FmiForecastParser.get_unit(key)},"
+        next_full_hour = (datetime.now(self.local_tz) + dt.timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+        today = next_full_hour.date()
 
-            result += f"Temperature: {data['temperature']}°C\n"
-            result += f"Precipitation: {data['PrecipitationAmount']} mm\n"
-            result += f"Cloud cover: {data['TotalCloudCover']}%\n"
-            result += f"Estimated weather condition: {FmiForecastParser.get_weather_condition(data)}\n\n"
+        for i, (time, data) in enumerate(weather_data.items()):
+
+            timestamp = next_full_hour + dt.timedelta(hours=i)
+            date_label = ""
+            if timestamp.date() == today:
+                date_label = "Today"
+            elif timestamp.date() == today + dt.timedelta(days=1):
+                date_label = "Tomorrow"
+            elif timestamp.date() == today + dt.timedelta(days=2):
+                date_label = "The day after tomorrow"
+            else:
+                date_label = timestamp.strftime('%A')  # Day of the week for later days
+
+            formatted_time = timestamp.strftime('%Y-%m-%d %H:%M')
+            result += f"{date_label} ({formatted_time}):\n"
+            result += f"  Temperature: {data['temperature']}°C\n"
+            result += f"  Precipitation: {data['PrecipitationAmount']} mm\n"
+            result += f"  Cloud cover: {data['TotalCloudCover']}%\n"
+            result += f"  Estimated weather condition: {FmiForecastParser.get_weather_condition(data)}\n\n"
+
         return result
 
 

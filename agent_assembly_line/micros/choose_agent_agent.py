@@ -51,7 +51,7 @@ class ChooseAgentAgent(Agent):
             raise ValueError("Invalid mode. Choose either 'local' or 'cloud'.")
 
         self.config.load_conf_dict({
-            "name": "clarity-agent-demo",
+            "name": "agent-router",
             "prompt": { "inline_rag_templates": inline_rag_template },
             "llm": {
                 "model-identifier": model_identifier,
@@ -65,7 +65,10 @@ class ChooseAgentAgent(Agent):
     def run(self, prompt="The following text tells what the user is intending to do, and a list of available agents. Please choose the matching agent for the intent."):
         result = super().run(prompt)
         if result:
-            return result.strip().replace("*", "").replace("`", "").replace("`", "").replace("**", "")
+            result_agent = result.strip().replace("*", "").replace("`", "").replace("`", "").replace("**", "")
+            if self.config.debug:
+                print(f"[router] proposed agent: {result_agent}")
+            return result_agent
         return ""
 
     def get_all_agents(self):

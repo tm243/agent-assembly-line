@@ -2,27 +2,23 @@
 Agent-Assembly-Line
 """
 
-from typing import AsyncGenerator, AsyncIterator
+import datetime
+import os
+from typing import AsyncGenerator
+
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.language_models import BaseLLM
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+
 from agent_assembly_line.config import Config
 from agent_assembly_line.data_loaders.diff_loader import GitDiffLoader
 from agent_assembly_line.memory_assistant import MemoryAssistant, MemoryStrategy, NoMemory
 from agent_assembly_line.data_loaders.data_loader_factory import DataLoaderFactory
 from agent_assembly_line.exceptions import DataLoadError, EmptyDataError
 from agent_assembly_line.utils.inspectable_runnable import InspectableRunnable
-from agent_assembly_line.data_loaders.web_loader import WebLoader
-
-import os
-
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-
-import datetime
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_chroma import Chroma
-from langchain_ollama import OllamaEmbeddings
-from langchain_ollama.llms import OllamaLLM
-from langchain_core.output_parsers import StrOutputParser
-
 from agent_assembly_line.llm_factory import LLMFactory
 
 class Agent:
@@ -45,9 +41,12 @@ class Agent:
     - add_diff(): Adds a git diff to the inline context.
     """
 
+    config: Config = None
+    model: BaseLLM = None
+
     user_uploaded_files = []
     user_added_urls = []
-    memory_assistant = NoMemory()
+    memory_assistant: MemoryStrategy = NoMemory()
     inline_context = ""
 
     # These attributes are used for routing and managing
@@ -84,8 +83,7 @@ class Agent:
             self.memory_assistant = NoMemory(config=self.config)
         self.stats = {}
 
-    async def cleanup(self):
-        await self.memory_assistant.stopSaving()
+    def cleanup(self):
         self.memory_assistant.cleanup()
         self.config.cleanup()
         self.user_uploaded_files = []
@@ -123,6 +121,9 @@ class Agent:
     async def startMemoryAssistant(self):
         await self.memory_assistant.start_saving()
         await self.memory_assistant.load_messages(self.config.memory_path)
+
+    async def stopMemoryAssistant(self):
+        await self.memory_assistant.stopSaving()
 
     def load_data(self, config) -> Chroma:
         source_type, source_path = DataLoaderFactory.guess_source_type(config)
@@ -241,92 +242,60 @@ class Agent:
             print(f"Time taken: {timediff:.2f} ms, {named}")
         self.timestamp = now
 
-    def run(self, prompt: str, skip_rag: bool = False) -> str:
-        import asyncio
-
+    def run(self, prompt: str = "", skip_rag: bool = False) -> str:
         if not isinstance(prompt, str):
             raise TypeError("The prompt must be a string.")
-        if not prompt:
+        if not prompt: # Don't invoke the model if prompt is empty
             return ""
-        text = ""
-        try:
-            loop = asyncio.get_running_loop()
-            if loop.is_running():
-                # If the loop is already running (e.g., in a Jupyter Notebook or test), use nest_asyncio
-                import nest_asyncio
-                nest_asyncio.apply()
-                text = loop.run_until_complete(self._consume_async_generator(self.do_chain(prompt, skip_rag, self.arun_callback)))
-            else:
-                text = loop.run_until_complete(self._consume_async_generator(self.do_chain(prompt, skip_rag, self.arun_callback)))
-        except RuntimeError:
-            text = asyncio.run(self._consume_async_generator(self.do_chain(prompt, skip_rag, self.run_callback)))
+        rag_prompt, runnable = self.do_chain(prompt, skip_rag)
+        text = runnable.invoke(rag_prompt)
 
         self._log_time("chain invoked")
         return text
 
-    async def _consume_async_generator(self, async_gen):
-        """Helper method to consume an async generator and collect results into a single string."""
-        collected_text = ""
-        async for item in async_gen:
-            # can be string or async generator:
-            if isinstance(item, str):
-                collected_text += item
-            else:
-                resolvedItem = await item
-                collected_text += resolvedItem
-        return collected_text
-
     async def arun(self, prompt: str, skip_rag: bool = False) -> str:
         if not isinstance(prompt, str):
             raise TypeError("The prompt must be a string.")
-        if not prompt:
+        if not prompt: # Don't invoke the model if prompt is empty
             return ""
-        text = await self._consume_async_generator(self.do_chain(prompt, skip_rag, self.arun_callback))
+        rag_prompt, runnable = self.do_chain(prompt, skip_rag)
+        text = await runnable.ainvoke(rag_prompt)
+
         self._log_time("chain invoked")
         await self.memory_assistant.add_message(prompt, text)
         self._log_time("Memory handling, done")
         return text
 
-    def run_callback(self, prompt, chain):
-        return chain.invoke(prompt)
-
-    async def arun_callback(self, prompt, chain):
-        try:
-            return await chain.ainvoke(prompt)
-        except Exception as e:
-            print(f"Error in arun_callback: {e}")
-            return ""
-
     async def stream(self, prompt: str, skip_rag: bool = False) -> AsyncGenerator[str, None]:
         if not isinstance(prompt, str):
             raise TypeError("The prompt must be a string.")
-        if prompt:
-            collected_responses = ""
-            async for response in self.do_chain(prompt, skip_rag, self.stream_callback):
-                if response:
-                    collected_responses += str(response)
-                yield response
-            self._log_time("chain invoked")
-            await self.memory_assistant.add_message(prompt, collected_responses)
-            self._log_time("Memory handling, done")
+        if not prompt: # Don't invoke the model if prompt is empty
+            yield ""
+            return
+        collected_responses = ""
+        rag_prompt, runnable = self.do_chain(prompt, skip_rag)
+        async for response in runnable.astream(rag_prompt):
+            if response:
+                collected_responses += str(response)
+            yield response
 
-    async def stream_callback(self, prompt, chain) -> AsyncGenerator:
-        yield chain.astream(prompt)
+        self._log_time("chain invoked")
+        await self.memory_assistant.add_message(prompt, collected_responses)
+        self._log_time("Memory handling, done")
 
     def _stats_callback(self, stats):
         if self.debug_mode:
             print(f"Prompt size: {stats['prompt_size']} characters")
         self.stats.update(stats)
 
-    async def do_chain(self, prompt, skip_rag=False, callback=run_callback) -> AsyncIterator[str]:
+    def do_chain(self, prompt, skip_rag=False) -> tuple[dict, RunnablePassthrough]:
+
         self._log_time("do_chain start")
         rag_prompt = ChatPromptTemplate.from_template(self.RAG_TEMPLATE)
         history = "\n".join([message.content for message in self.memory_assistant.messages]) if self.config.use_memory else ""
 
         if skip_rag:
-            response_message = self.model.invoke(prompt)
-            yield response_message
-            return
+            return prompt, self.model
 
         today = datetime.datetime.now().strftime("%A, %B %d, %Y %I:%M %p")
         agent_info = self.config.name + " using " + self.config.model_name
@@ -366,20 +335,7 @@ class Agent:
             print(f"Agent info: {agent_info}")
 
         try:
-            if callback:
-                result = callback({"global_store": agent_docs, "session_store": user_docs, "question": prompt}, chain)
-                if hasattr(result, "__aiter__"):
-                    async for item in result:
-                        # consume the possible async generator:
-                        if hasattr(item, "__aiter__"):
-                            async for sub_item in item:
-                                yield sub_item
-                        else:
-                            yield item
-                else:
-                    yield result
-            else:
-                print("No callback provided, using default chain invocation.")
+            return {"global_store": agent_docs, "session_store": user_docs, "question": prompt}, chain
         except Exception as e:
             print(f"Error in do_chain: {e}")
 

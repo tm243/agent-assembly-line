@@ -37,25 +37,33 @@ class TestChatAgent(unittest.TestCase):
         self._deleteSandbox()
 
     @patch("agent_assembly_line.decorators.agent_decorators._get_agent_or_fallback")
-    def test_chat_agent_run_with_agent_router(self, mock_get_agent_or_fallback):
+    @patch.object(ChatAgent, "do_chain", return_value=("Mocked do_chain result", MagicMock()))
+    def test_chat_agent_run_with_agent_router(self, mock_do_chain, mock_get_agent_or_fallback):
         """
-        Test that ChatAgent uses the decision maker to select an agent and calls its run method.
+        Test that ChatAgent uses the router to select a special agent and calls its run method.
         """
-        # Mock the agent returned by _get_agent_or_fallback
-        mock_agent = MagicMock()
-        mock_agent.run.return_value = "MockAgent run result"
-        mock_get_agent_or_fallback.return_value = mock_agent
+
+        # Mock the agent router to return a mock agent
+        special_agent_mulder = MagicMock()
+        special_agent_mulder.run.return_value = "I want to believe"
+        mock_get_agent_or_fallback.return_value = special_agent_mulder
+
+        # Mock the do_chain() method to return a mock runnable to call model.invoke()
+        mock_model = mock_do_chain.return_value[1]
+        mock_model.invoke.return_value = "What if you’re wrong? I want to believe"
 
         # Now the actual call
-        chat_agent = ChatAgent(agent_name="test-agent")
-        result = chat_agent.run("test prompt")
+        agent_scully = ChatAgent(agent_name="test-agent")
+        result = agent_scully.run("What if you’re wrong?")
+        self.assertEqual(result, "What if you’re wrong? I want to believe")
 
-        # Assert that it routed to the MockAgent
-        self.assertEqual(result, "MockAgent run result")
-        mock_get_agent_or_fallback.assert_called_once_with(chat_agent, "test prompt", ["fmi_weather_agent", "website_summary_agent", "diff_details_agent", "diff_sum_agent"])
-        mock_agent.run.assert_called_once()
+        mock_do_chain.assert_called_once_with("What if you’re wrong?", False)
 
-        chat_agent.closeModels()
+        # Assert that the router routed to Mulder:
+        mock_get_agent_or_fallback.assert_called_once_with(agent_scully, "What if you’re wrong?", ["fmi_weather_agent", "website_summary_agent", "diff_details_agent", "diff_sum_agent"])
+        special_agent_mulder.run.assert_called_once()
+
+        agent_scully.closeModels()
 
     @patch("agent_assembly_line.decorators.agent_decorators._get_agent_or_fallback")
     def test_chat_agent_run_fallback_to_original(self, mock_get_agent_or_fallback):

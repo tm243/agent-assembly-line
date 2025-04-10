@@ -8,9 +8,7 @@ import os
 import shutil
 from agent_assembly_line import Agent, AgentManager
 from unittest.mock import patch, Mock, AsyncMock
-from agent_assembly_line.middleware.semantic_test_case import SemanticTestCase, AioSemanticTestCase
-import asyncio
-import tracemalloc
+from agent_assembly_line.middleware.semantic_test_case import AioSemanticTestCase
 
 class TestAgent(AioSemanticTestCase):
 
@@ -39,17 +37,10 @@ class TestAgent(AioSemanticTestCase):
     def setUp(self):
         self._createSandbox()
         self.agent_manager = AgentManager()
-        asyncio.get_event_loop().set_debug(False)
 
     def tearDown(self):
         self.agent_manager.cleanup()
         self._deleteSandbox()
-
-    async def test_smth(self):
-        agent = Agent("test-agent")
-        await agent.cleanup()
-        await agent.aCloseModels()
-
 
     @unittest.skipIf(os.getenv("CIRCLECI") == "true", "Skipping this test on CircleCI")
     @patch('agent_assembly_line.memory_assistant.MemoryAssistant.summarize_memory', new_callable=AsyncMock)
@@ -73,7 +64,10 @@ class TestAgent(AioSemanticTestCase):
         text = agent.run(question + " If you don't know the answer, reply only with 'I cannot answer this question'", skip_rag=True)
         await self.assertSemanticallyEqual("I cannot answer this question", text)
 
-        await agent.cleanup()
+        agent.cleanup()
+        await agent.stopMemoryAssistant()
+
+        agent.closeModels()
         await agent.aCloseModels()
 
     @unittest.skipIf(os.getenv("CIRCLECI") == "true", "Skipping this test on CircleCI")
@@ -95,8 +89,9 @@ class TestAgent(AioSemanticTestCase):
         text = agent.run(question + " If you don't know the answer, reply only with 'I cannot answer this question'", skip_rag=True)
         await self.assertSemanticallyEqual("I cannot answer this question", text, "Name of country, without RAG")
 
-        await agent.cleanup()
+        agent.cleanup()
         await agent.aCloseModels()
+
 
 if __name__ == '__main__':
     unittest.main()

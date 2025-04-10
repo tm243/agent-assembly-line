@@ -9,8 +9,7 @@ import os
 import shutil
 from agent_assembly_line.agent import Agent, Config, MemoryAssistant, NoMemory
 from agent_assembly_line.memory_assistant import MemoryStrategy
-from unittest.mock import patch, Mock, AsyncMock
-from agent_assembly_line.middleware.semantic_test_case import SemanticTestCase
+from unittest.mock import patch, AsyncMock
 
 class StubModel():
     prompt = ""
@@ -49,7 +48,7 @@ class TestAgent(aiounittest.AsyncTestCase):
     def tearDown(self):
         self._deleteSandbox()
 
-    async def test_question_test_agent(self):
+    def test_question_test_agent(self):
         agent = Agent("test-agent")
 
         question = "How many people live in the country? Short answer."
@@ -60,8 +59,8 @@ class TestAgent(aiounittest.AsyncTestCase):
         text = agent.run(question)
         self.assertIn("Aethelland", text, "Name of country")
 
-        await agent.cleanup()
-        await agent.aCloseModels()
+        agent.cleanup()
+        agent.closeModels()
 
     async def test_question_stream(self):
         agent = Agent("test-agent")
@@ -71,7 +70,7 @@ class TestAgent(aiounittest.AsyncTestCase):
         async for chunk in agent.stream(question):
             text += chunk
 
-        await agent.cleanup()
+        agent.cleanup()
         await agent.aCloseModels()
 
     @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=AsyncMock)
@@ -92,7 +91,8 @@ class TestAgent(aiounittest.AsyncTestCase):
             pass
         mock_add_message.assert_called_once_with(question, text)
 
-        await agent.cleanup()
+        await agent.stopMemoryAssistant()
+        agent.cleanup()
         await agent.aCloseModels()
 
     async def test_agent_initialization(self):
@@ -104,7 +104,7 @@ class TestAgent(aiounittest.AsyncTestCase):
         self.assertEqual(agent.memory_strategy, MemoryStrategy.SUMMARY, "Memory strategy should be SUMMARY.")
         self.assertIsInstance(agent.memory_assistant, MemoryAssistant, "Memory assistant should be of type MemoryAssistant.")
 
-        await agent.cleanup()
+        agent.cleanup()
         agent.closeModels()
 
     @patch('agent_assembly_line.memory_assistant.MemoryAssistant.add_message', new_callable=AsyncMock)
@@ -124,7 +124,7 @@ class TestAgent(aiounittest.AsyncTestCase):
         add_message_mock.assert_not_called()
         summarize_memory_mock.assert_not_called()
 
-        await agent.cleanup()
+        agent.cleanup()
         await agent.aCloseModels()
 
     async def test_run_with_empty_question(self):
@@ -134,23 +134,31 @@ class TestAgent(aiounittest.AsyncTestCase):
         empty = agent.run("")
         self.assertAlmostEqual(empty, "", "Empty question should return an empty string.")
 
-        await agent.cleanup()
+        agent.cleanup()
         agent.closeModels()
 
-    async def test_stream_with_empty_question(self):
+    @patch('agent_assembly_line.agent.Agent.model', new_callable=AsyncMock)
+    async def test_stream_with_empty_question(self, mock_model):
         """Test the Agent.stream() method with an empty question."""
         agent = Agent("test-agent")
+
         async for _ in agent.stream(""):
             pass
+        mock_model.astream.assert_not_called()
 
-        await agent.cleanup()
+        with self.assertRaises(TypeError, msg="No question should skip the invoke."):
+            async for _ in agent.stream(None):
+                pass
+        mock_model.astream.assert_not_called()
+
+        agent.cleanup()
         agent.closeModels()
 
     async def test_cleanup_without_usage(self):
         """Test cleanup when Agent has not been used."""
         agent = Agent("test-agent")
         try:
-            await agent.cleanup()
+            agent.cleanup()
         except Exception as e:
             self.fail(f"Agent.cleanup() raised an exception unexpectedly: {e}")
 
@@ -161,7 +169,7 @@ class TestAgent(aiounittest.AsyncTestCase):
         agent = Agent("test-agent")
         with self.assertRaises(TypeError, msg="Non-string question should raise a TypeError."):
             agent.run(12345)
-        await agent.cleanup()
+        agent.cleanup()
         agent.closeModels()
 
     async def test_stream_with_invalid_question_type(self):
@@ -170,7 +178,7 @@ class TestAgent(aiounittest.AsyncTestCase):
         with self.assertRaises(TypeError, msg="Non-string question should raise a TypeError."):
             async for _ in agent.stream(12345):
                 pass
-        await agent.cleanup()
+        agent.cleanup()
         agent.closeModels()
 
     # @todo add test "agent not found"

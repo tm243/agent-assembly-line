@@ -6,6 +6,7 @@ from agent_assembly_line.agent import Agent
 from agent_assembly_line.config import Config
 from agent_assembly_line.data_loaders.xml_remote_loader import XmlRemoteLoader
 from agent_assembly_line.middleware.fmi_forecast_parser import FmiForecastParser
+from datetime import datetime
 
 class FmiWeatherAgent(Agent):
     """
@@ -14,7 +15,7 @@ class FmiWeatherAgent(Agent):
 
     purpose = "Provides weather forecasts for Finland, specifically Helsinki."
 
-    def __init__(self, prompt="Helsinki", forecast_hours=6, mode='local'):
+    def __init__(self, prompt="Helsinki", forecast_hours=24, mode='local'):
         self.config = Config()
         self.loader = XmlRemoteLoader()
 
@@ -22,9 +23,7 @@ class FmiWeatherAgent(Agent):
         You are a helpful AI weather assistant specialized in telling the forecast.
 
         ## Instructions:
-        - give a textual summary, not just numbers
-        - do not write bullet points
-        - keep it simple and easy to understand
+        Give a precise and accurate weather forecast for the next hours.
 
         ## Context:
         - Today's date: {today}
@@ -69,7 +68,7 @@ class FmiWeatherAgent(Agent):
         human_string = handler.to_human_string(data)
 
         if human_string:
-            self.add_inline_text(human_string)
+            self.add_inline_text(f"\n\The weather service says: {human_string}")
         else:
             print("Failed to fetch weather data.")
 
@@ -86,7 +85,7 @@ class FmiWeatherAgent(Agent):
         "Rautavaara", "Ruokolahti", "Salla", "Kuhmo", "Lieksa",
         "Ylivieska", "Salla", "Rautavaara", "Ruokolahti", "Kuhmo",
         "Lieksa", "Ylivieska", "Salla", "Rautavaara", "Ruokolahti",
-        "Kuhmo", "Lieksa", "Ylivieska", "Salla", "Rautavaara",
+        "Kuhmo", "Lieksa", "Ylivieska", "Salla", "Rautavaara", "Inari"
     ]
 
     def _extract_city_name_with_llm(self, prompt):
@@ -118,5 +117,8 @@ class FmiWeatherAgent(Agent):
             return "Helsinki"
         return city_name
 
-    def run(self, prompt="What will the weather be like today?"):
-        return super().run(prompt)
+    def run(self, prompt="What will the weather be like?"):
+        result = super().run(prompt).strip()
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        result = f"{result} timestamp: {current_time}"
+        return result

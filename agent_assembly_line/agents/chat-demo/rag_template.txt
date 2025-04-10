@@ -12,8 +12,8 @@ Keep your tone conversational and informative.
 - Persistent Knowledge (always available):  
   {global_store}  
 
-## Conversation History:
-{history}
+## More context:
+{context}
 
 ## Knowledge & Retrieval:  
 - First, check temporary session data (user-uploaded documents, links).  

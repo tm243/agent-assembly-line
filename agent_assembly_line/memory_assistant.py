@@ -135,7 +135,7 @@ class MemoryAssistant():
                 with open(file_path, 'w') as file:
                     json.dump(all_messages, file, indent=4, sort_keys=True)
                 if self.config.debug:
-                    print(f"{len(all_messages)} messages saved to {file_path}")
+                    print(f"[memory] {len(all_messages)} messages saved to {file_path}")
         except Exception as e:
             print("Error saving messages: ", e)
 
