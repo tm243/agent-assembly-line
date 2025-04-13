@@ -42,7 +42,7 @@ dependencies = [
     "python-multipart",
     "pydantic==2.10.6",
     "fastapi==0.115.8",
-    "atproto",
+    "atproto==0.0.59",
 ]
 
 [project.urls]
