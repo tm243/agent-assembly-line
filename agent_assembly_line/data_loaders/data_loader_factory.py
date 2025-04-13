@@ -9,6 +9,7 @@ from .rss_feed_loader import RSSFeedLoader
 from .json_loader import JSONLoader
 from .text_loader import TextLoader, InlineTextLoader
 from .pdf_loader import PDFLoader
+from .bluesky_loader import BlueskyLoader
 from .rest_api_loader import RESTAPILoader
 
 class DataLoaderFactory:
@@ -28,6 +29,8 @@ class DataLoaderFactory:
             return RESTAPILoader()
         elif source_type == "inline_text":
             return InlineTextLoader()
+        elif source_type == "bluesky":
+            return BlueskyLoader()
         else:
             raise ValueError(f"Unsupported source type: {source_type}")
 
@@ -54,6 +57,8 @@ class DataLoaderFactory:
             return 'text'
         elif url.endswith(".html"):
             return 'web'
+        elif url.startswith("https://bsky.app/profile/"):
+            return 'bluesky'
         else:
             try:
                 response = requests.head(url)
