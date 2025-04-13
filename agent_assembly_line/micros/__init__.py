@@ -11,3 +11,4 @@ from .sum_agent import SumAgent
 from .test_validator_agent import TestValidatorAgent
 from .website_summary_agent import WebsiteSummaryAgent
 from .yes_no_agent import YesNoAgent
+from .one_ten_agent import OneTenAgent

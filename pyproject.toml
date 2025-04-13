@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-assembly-line"
-version = "0.0.1"
+version = "0.0.2"
 description = "A package for building AI agents that can be easily embedded into existing software stacks."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -42,6 +42,7 @@ dependencies = [
     "python-multipart",
     "pydantic==2.10.6",
     "fastapi==0.115.8",
+    "atproto",
 ]
 
 [project.urls]
