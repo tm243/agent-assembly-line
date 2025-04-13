@@ -1,3 +1,4 @@
+agent-assembly-line @ file:///Users/thomas/Projects/assistants/AskYourDoc/agent-assembly-line
 aiohappyeyeballs==2.6.1
 aiohttp==3.11.14
 aiosignal==1.3.2
@@ -6,6 +7,7 @@ annotated-types==0.7.0
 anyio==4.9.0
 asgiref==3.8.1
 async-timeout==4.0.3
+atproto==0.0.59
 attrs==25.3.0
 backoff==2.2.1
 backports.tarfile==1.2.0
@@ -15,15 +17,18 @@ bs4==0.0.2
 build==1.2.2.post1
 cachetools==5.5.2
 certifi==2025.1.31
+cffi==1.17.1
 charset-normalizer==3.4.1
 chroma-hnswlib==0.7.6
 chromadb==0.6.3
 click==8.1.8
 coloredlogs==15.0.1
+cryptography==44.0.2
 cssselect==1.3.0
 dataclasses-json==0.6.7
 Deprecated==1.2.18
 distro==1.9.0
+dnspython==2.7.0
 docutils==0.21.2
 durationpy==0.9
 exceptiongroup==1.2.2
@@ -69,6 +74,7 @@ langchain-ollama==0.3.0
 langchain-openai==0.3.11
 langchain-text-splitters==0.3.7
 langsmith==0.3.18
+libipld==3.0.1
 loguru==0.7.3
 lxml==5.3.1
 lxml_html_clean==0.4.1
@@ -81,6 +87,7 @@ more-itertools==10.6.0
 mpmath==1.3.0
 multidict==6.2.0
 mypy-extensions==1.0.0
+nest-asyncio==1.6.0
 newspaper3k==0.2.8
 nh3==0.2.21
 nltk==3.9.1
@@ -113,6 +120,7 @@ protobuf==5.29.4
 pyarrow==19.0.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.1
+pycparser==2.22
 pydantic==2.10.6
 pydantic-settings==2.8.1
 pydantic_core==2.27.2
@@ -167,12 +175,10 @@ uvloop==0.21.0
 watchfiles==1.0.4
 webdriver-manager==4.0.2
 websocket-client==1.8.0
-websockets==15.0.1
+websockets==13.1
 wrapt==1.17.2
 wsproto==1.2.0
 xmltodict==0.14.2
 yarl==1.18.3
 zipp==3.21.0
 zstandard==0.23.0
-atproto==0.0.59
-
