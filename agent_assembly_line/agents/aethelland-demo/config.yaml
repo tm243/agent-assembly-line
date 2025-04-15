@@ -6,5 +6,4 @@ prompt:
   template: "rag_template.txt"
 llm:
   model-identifier: "ollama:gemma2:latest"
-  embeddings: "nomic-embed-text"
 use-memory: false

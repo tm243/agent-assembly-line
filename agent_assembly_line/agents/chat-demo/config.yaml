@@ -6,7 +6,6 @@ prompt:
   template: "rag_template.txt"
 llm:
   model-identifier: "ollama:gemma2:latest"
-  embeddings: "nomic-embed-text"
 
   # model-identifier: "openai:gpt-3.5-turbo-instruct"
   # model-identifier: "openai:gpt-4o"

@@ -6,6 +6,6 @@ prompt:
   template: "rag_template.txt"
 llm:
   model-identifier: "ollama:gemma3:4b"
-  embeddings: "nomic-embed-text"
+  custom-embeddings: "nomic-embed-text"
 use-memory: true
 memory-prompt: "test-memory-prompt"

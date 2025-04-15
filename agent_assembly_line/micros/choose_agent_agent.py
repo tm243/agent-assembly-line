@@ -43,10 +43,8 @@ class ChooseAgentAgent(Agent):
 
         if mode == 'local':
             model_identifier = "ollama:gemma2:latest"
-            embeddings = "nomic-embed-text"
         elif mode == 'cloud':
             model_identifier = "openai:gpt-4o"
-            embeddings = "text-embedding-ada-002"
         else:
             raise ValueError("Invalid mode. Choose either 'local' or 'cloud'.")
 
@@ -54,8 +52,7 @@ class ChooseAgentAgent(Agent):
             "name": "agent-router",
             "prompt": { "inline_rag_templates": inline_rag_template },
             "llm": {
-                "model-identifier": model_identifier,
-                "embeddings": embeddings
+                "model-identifier": model_identifier
             },
         })
         super().__init__(config=self.config)

@@ -22,7 +22,7 @@ class Config:
     # model
     model_name: str = ""
     model_identifier: str = ""
-    embeddings: str = ""
+    custom_embeddings: str = ""
 
     # memory
     memory_prompt: str = ""
@@ -68,7 +68,9 @@ class Config:
         self.prompt_template = os.path.join(agents_path, config.get("prompt", {}).get("template", "")) if agents_path else config.get("prompt", {}).get("template", "")
         self.inline_rag_templates = config.get("prompt", {}).get("inline_rag_templates", "")  # Set inline RAG templates from prompt section
         self.model_identifier = config["llm"]["model-identifier"]
-        self.embeddings = config["llm"]["embeddings"]
+        if "custom-embeddings" in config["llm"].keys():
+            self.custom_embeddings = config["llm"]["custom-embeddings"]
+        # self.custom_embeddings = config["llm"].get("custom_embeddings", "")
         self.memory_prompt = config.get("memory-prompt", "Please summarize the conversation.")
         self.use_memory = config.get("use-memory", False)
         self.timeout = config.get("timeout", 120)
@@ -138,7 +140,7 @@ class Config:
         self.prompt_template = None
         self.model_name = None
         self.model_identifier = None
-        self.embeddings = None
+        self.custom_embeddings = None
         self.memory_prompt = None
         self.debug = None
         self.name = None

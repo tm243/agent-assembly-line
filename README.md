@@ -185,8 +185,7 @@ Agent objects can either read its configuration from a YAML config file like the
     config.load_conf_dict({
         "name": "my-demo",
         "llm": {
-            "model-identifier": "ollama:gemma:latest",
-            "embeddings": "nomic-embed-text"
+            "model-identifier": "ollama:gemma:latest"
         },
     })
     agent = Agent(config=config)

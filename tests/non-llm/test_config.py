@@ -31,7 +31,7 @@ class TestConfig(unittest.TestCase):
             "llm": {
                 "model-name": "test_model",
                 "model-identifier": "ollama:test_model",
-                "embeddings": "test_embeddings"
+                "custom-embeddings": "test_embeddings"
             },
             "memory-prompt": "Please summarize the conversation.",
             "use-memory": True,
@@ -64,7 +64,7 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(config.prompt_template, os.path.join(self.config_dir, self.config_data["prompt"]["template"]))
         self.assertEqual(config.model_name, self.config_data["llm"]["model-name"])
         self.assertEqual(config.model_identifier, self.config_data["llm"]["model-identifier"])
-        self.assertEqual(config.embeddings, self.config_data["llm"]["embeddings"])
+        self.assertEqual(config.custom_embeddings, self.config_data["llm"]["custom-embeddings"])
         self.assertEqual(config.memory_prompt, self.config_data["memory-prompt"])
         self.assertEqual(config.use_memory, self.config_data["use-memory"])
         self.assertEqual(config.timeout, self.config_data["timeout"])
@@ -120,7 +120,7 @@ class TestConfig(unittest.TestCase):
         self.assertIsNone(config.prompt_template)
         self.assertIsNone(config.model_name)
         self.assertIsNone(config.model_identifier)
-        self.assertIsNone(config.embeddings)
+        self.assertIsNone(config.custom_embeddings)
         self.assertIsNone(config.memory_prompt)
         self.assertIsNone(config.debug)
         self.assertIsNone(config.name)

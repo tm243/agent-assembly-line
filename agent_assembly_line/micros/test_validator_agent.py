@@ -12,7 +12,7 @@ class TestValidatorAgent(Agent):
 
     purpose = "Validates if a statement is true or false based on the provided context."
 
-    def __init__(self, mode='local', llm="ollama:gemma3:4b", embeddings="nomic-embed-text"):
+    def __init__(self, mode='local', llm="ollama:gemma3:4b"):
         self.config = Config()
 
         inline_rag_template = """
@@ -28,10 +28,8 @@ class TestValidatorAgent(Agent):
 
         if mode == 'local':
             model_identifier = llm
-            embeddings = embeddings
         elif mode == 'cloud':
             model_identifier = "openai:gpt-4o"
-            embeddings = "text-embedding-ada-002"
         else:
             raise ValueError("Invalid mode. Choose either 'local' or 'cloud'.")
 
@@ -39,8 +37,7 @@ class TestValidatorAgent(Agent):
             "name": "test-validator-agent",
             "prompt": { "inline_rag_templates": inline_rag_template },
             "llm": {
-                "model-identifier": model_identifier,
-                "embeddings": embeddings
+                "model-identifier": model_identifier
             },
         })
         super().__init__(config=self.config)

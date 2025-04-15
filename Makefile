@@ -21,6 +21,9 @@ stress-test:
 		python -m unittest discover -s tests; \
 	done
 
+build:
+	python3 -m build
+
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
 
