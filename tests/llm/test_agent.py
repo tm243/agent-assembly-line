@@ -98,7 +98,7 @@ class TestAgent(aiounittest.AsyncTestCase):
     async def test_agent_initialization(self):
         """Test the initialization of the Agent class."""
         agent = Agent("test-agent")
-        self.assertEqual(agent.agent_name, "test-agent", "Agent name should match the initialized value.")
+        self.assertEqual(agent.name, "test-agent", "Agent name should match the initialized value.")
         self.assertIsNotNone(agent.memory_strategy, "Memory strategy should be initialized.")
         self.assertIsInstance(agent.memory_strategy, MemoryStrategy, "Memory strategy should be of type MemoryStrategy.")
         self.assertEqual(agent.memory_strategy, MemoryStrategy.SUMMARY, "Memory strategy should be SUMMARY.")

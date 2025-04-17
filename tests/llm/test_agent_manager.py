@@ -48,7 +48,7 @@ class TestAgentManager(aiounittest.AsyncTestCase):
         await agent.startMemoryAssistant()
 
         mock_summarize_memory.assert_called_once()
-        self.assertEqual(agent.agent_name, "test-agent")
+        self.assertEqual(agent.name, "test-agent")
 
         await agent.stopMemoryAssistant()
         agent.cleanup()

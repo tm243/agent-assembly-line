@@ -12,7 +12,7 @@ class AgentManager:
         self.current_agent = None
 
     def select_agent(self, agent_name, debug=False):
-        if self.current_agent is None or self.current_agent.agent_name != agent_name:
+        if self.current_agent is None or self.current_agent.name != agent_name:
             self.current_agent = ChatAgent(agent_name, debug)
         return self.current_agent
 

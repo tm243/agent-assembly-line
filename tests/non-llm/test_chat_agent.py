@@ -53,7 +53,7 @@ class TestChatAgent(unittest.TestCase):
         mock_model.invoke.return_value = "What if you’re wrong? I want to believe"
 
         # Now the actual call
-        agent_scully = ChatAgent(agent_name="test-agent")
+        agent_scully = ChatAgent(name="test-agent")
         result = agent_scully.run("What if you’re wrong?")
         self.assertEqual(result, "What if you’re wrong? I want to believe")
 

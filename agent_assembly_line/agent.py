@@ -54,15 +54,15 @@ class Agent:
     _router = None
     _allocated_agents = []
 
-    def __init__(self, agent_name = None, debug = False, config = None):
-        if agent_name:
-            self.agent_name = agent_name
+    def __init__(self, name = None, debug = False, config = None):
+        if name:
+            self.name = name
         if not config:
-            self.config = Config(load_agent_conf=agent_name, debug=debug)
+            self.config = Config(load_agent_conf=name, debug=debug)
         else:
             self.config = config
-        if not agent_name:
-            self.agent_name = self.config.name
+        if not name:
+            self.name = self.config.name
         self.debug_mode = debug
         if self.config.prompt_template:
             with open(self.config.prompt_template, "r") as rag_template_file:
