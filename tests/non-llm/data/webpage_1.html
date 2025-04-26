@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Site Example</title>
+</head>
+<body class="layout layout-with-rail article page">
+    <header class="header-wrapper-outer">
+        <div class="header-wrapper-inner" data-editable="header">
+            <!-- Ad feedback modal -->
+            <div class="feedback-modal modal-overlay" style="display:none">
+                <div class="feedback-container">
+                    <form class="feedback-form">
+                        <div class="feedback-heading">
+                            <h3 class="feedback-heading-text">We value your feedback</h3>
+                            <div class="feedback-close-icon"></div>
+                        </div>
+                        <div class="feedback-content-container">
+                            <!-- Form content -->
+                            <div class="feedback-actions">
+                                <button type="button" class="feedback-cancel button">Cancel</button>
+                                <button type="submit" class="feedback-submit button" disabled>Submit</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="feedback-submitted">
+                        <div class="feedback-submitted-checkmark"></div>
+                        <div class="feedback-submitted-title">Thank You!</div>
+                        <div class="feedback-submitted-message">Your feedback is appreciated.</div>
+                        <div class="feedback-submitted-close">Close</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ad slot header -->
+            <div class="ad-slot-header-wrapper">
+                <div class="ad-slot-header">
+                    <div class="ad-slot-header-container">
+                        <div class="ad-slot">
+                            <div class="ad-slot-feedback">
+                                <div class="ad-slot-label"></div>
+                                <div class="ad-feedback-link">
+                                    <div class="ad-feedback-link-label">Ad Feedback</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main navigation -->
+            <div class="dynamic">
+                <div class="dynamic-logic">
+                    <div data-editable="mainComponent">
+                        <nav id="pageHeader" class="header app-display-none">
+                            <div class="header-inner">
+                                <div class="header-subnav-mount">
+                                    <div class="header-container">
+                                        <!-- Left section with menu and logo -->
+                                        <div class="header-left">
+                                            <button id="headerMenuIcon" class="header-menu-icon" aria-label="Open Menu Icon">
+                                                <svg class="header-menu-icon-svg" width="28" height="28" viewBox="0 0 28 28"></svg>
+                                            </button>
+                                            <button id="headerCloseIcon" class="header-close-icon" aria-label="Close Menu Icon">
+                                                <svg class="header-close-icon-svg" width="64" height="64" viewBox="0 0 64 64"></svg>
+                                            </button>
+                                            <div class="brand-logo">
+                                                <a class="brand-logo-link" href="/" title="Logo">
+                                                    <span class="brand-logo-logo">
+                                                        <svg class="brand-logo-icon" width="46" height="22" viewBox="0 0 46 22"></svg>
+                                                    </span>
+                                                </a>
+                                                <a class="brand-logo-theme-link" href="/world">
+                                                    <span class="brand-logo-theme">World</span>
+                                                </a>
+                                            </div>
+
+                                            <!-- Main navigation items -->
+                                            <nav class="header-nav">
+                                                <div class="header-nav-container">
+                                                    <div class="header-nav-item">
+                                                        <a class="header-nav-item-link" href="/section1">Section 1</a>
+                                                    </div>
+                                                    <div class="header-nav-item">
+                                                        <a class="header-nav-item-link" href="/section2">Section 2</a>
+                                                    </div>
+                                                    <div class="header-nav-more">
+                                                        <a id="moreDropdown" class="header-nav-more-link header-nav-button">
+                                                            <span class="header-nav-more-toggle-caret">More</span>
+                                                        </a>
+                                                        <div class="header-nav-item-dropdown">
+                                                            <div class="header-nav-item-dropdown-inner">
+                                                                <a class="header-nav-item-dropdown-item" href="/section1">Section 1</a>
+                                                                <a class="header-nav-item-dropdown-item" href="/section2">Section 2</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </nav>
+                                        </div>
+                                        
+                                        <!-- Right section with user controls -->
+                                        <div class="header-right">
+                                            <a class="header-video-link" href="/video">Watch</a>
+                                            <a class="header-audio-link" href="/audio">Listen</a>
+                                            <a class="header-live-tv-link" href="/live">Live</a>
+                                            <button id="headerSearchIcon" class="header-search-icon" aria-label="Search Icon">
+                                                <svg class="header-search-icon-svg" viewBox="0 0 64 64"></svg>
+                                            </button>
+                                            <button id="headerSubscribeButton" class="header-subscribe-button">Subscribe</button>
+                                            
+                                            <!-- User account section -->
+                                            <div id="desktop-header-account-nav" class="header-user-account-nav-icon">
+                                                <nav class="user-account-nav" aria-label="User Account Nav">
+                                                    <div class="user-account-nav-icons">
+                                                        <button class="user-account-nav-icon-button">
+                                                            <svg class="icon-avatar" width="24" height="24" viewBox="0 0 24 24"></svg>
+                                                        </button>
+                                                        <button class="user-account-nav-text-button">Sign in</button>
+                                                    </div>
+                                                    <div class="user-account-nav-menu" aria-label="User Account Nav Menu">
+                                                        <div class="user-account-nav-menu-button">
+                                                            My Account
+                                                            <span class="user-account-nav-caret"></span>
+                                                        </div>
+                                                        <ul class="user-account-nav-menu-options" role="menu">
+                                                            <li class="user-account-nav-menu-item">
+                                                                <a class="user-account-nav-menu-link" href="/account/settings">Settings</a>
+                                                            </li>
+                                                            <li class="user-account-nav-menu-item">
+                                                                <a class="user-account-nav-menu-link" href="/newsletters">Newsletters</a>
+                                                            </li>
+                                                            <li class="user-account-nav-menu-item">
+                                                                <a class="user-account-nav-menu-link" href="/topics">Topics You Follow</a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </nav>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Search bar and submenu -->
+                                    <hr class="header-navigation-separator"/>
+                                    <div id="headerSubNav" class="header-subnav">
+                                        <div class="header-container">
+                                            <div class="search-bar">
+                                                <form action="/search" class="search-bar-form" role="search">
+                                                    <input placeholder="Search..." aria-label="Search" class="search-bar-input" type="text">
+                                                    <button type="submit" class="search-bar-submit" title="Submit"></button>
+                                                </form>
+                                            </div>
+                                            
+                                            <!-- Mobile account nav -->
+                                            <div id="mobile-header-account-nav" class="header-user-account-nav-mobile"></div>
+                                            
+                                            <!-- Edition selector -->
+                                            <nav class="header-editionizer">
+                                                <div class="header-editionizer-desktop">
+                                                    <div class="header-editionizer-header">Edition</div>
+                                                    <div class="header-editionizer-item">
+                                                        <a class="header-editionizer-link" href="/edition1">Edition 1</a>
+                                                    </div>
+                                                    <div class="header-editionizer-item">
+                                                        <a class="header-editionizer-link" href="/edition2">Edition 2</a>
+                                                    </div>
+                                                </div>
+                                            </nav>
+                                            
+                                            <!-- Section navigation -->
+                                            <nav class="subnav">
+                                                <ul class="subnav-sections">
+                                                    <li class="subnav-section">
+                                                        <a href="/section1" class="subnav-section-link">Section 1</a>
+                                                        <ul class="subnav-subsections">
+                                                            <li class="subnav-subsection">
+                                                                <a href="/section1/subsection1" class="subnav-subsection-link">Subsection 1.1</a>
+                                                            </li>
+                                                            <li class="subnav-subsection">
+                                                                <a href="/section1/subsection2" class="subnav-subsection-link">Subsection 1.2</a>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="subnav-section">
+                                                        <a href="/section2" class="subnav-section-link">Section 2</a>
+                                                        <ul class="subnav-subsections">
+                                                            <li class="subnav-subsection">
+                                                                <a href="/section2/subsection1" class="subnav-subsection-link">Subsection 2.1</a>
+                                                            </li>
+                                                            <li class="subnav-subsection">
+                                                                <a href="/section2/subsection2" class="subnav-subsection-link">Subsection 2.2</a>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="content-wrapper">
+        <article class="article-content">
+            <div class="article-header">
+                <h1 class="article-title">Scientists Discover Highly Evolved Jellyfish Living in Hidden Lakes on Europa</h1>
+                <div class="article-meta">
+                    <span class="article-author">By Alex Rivera</span>
+                    <span class="article-date">April 23, 2025</span>
+                </div>
+            </div>
+            
+            <div class="article-image-container">
+                <img src="https://example.com/placeholder-image.jpg" alt="Artist's rendering of bioluminescent jellyfish discovered on Europa" class="article-main-image">
+                <div class="article-image-caption">An artist's rendering depicts the newly discovered Europa jellyfish, which appear to communicate through complex patterns of bioluminescence. Credit: ExoLife Institute</div>
+            </div>
+            
+            <div class="article-body">
+                <p class="article-lead">In what scientists are calling "the most significant astrobiological discovery in human history," researchers have confirmed the existence of complex, jellyfish-like organisms living in subsurface lakes on Jupiter's moon Europa.</p>
+                
+                <p>The incredible discovery was made when NASA's Europa Submersible Exploration Probe (ESEP) penetrated the moon's icy surface last month and deployed a series of autonomous underwater drones equipped with advanced imaging systems and biological sensors.</p>
+                
+                <p>"We expected to find, at most, some form of microbial life," said Dr. Samantha Chen, lead astrobiologist for the Europa mission. "What we discovered instead has completely revolutionized our understanding of how life can evolve in the solar system."</p>
+                
+                <h2 class="article-section">Bioluminescent Communication</h2>
+                
+                <p>The Europa jellyfish, as they've been unofficially named, range from 15 to 30 centimeters in length and appear to communicate through complex patterns of bioluminescence. Even more surprising, the creatures seem to have evolved specialized appendages that they use to manipulate their environment.</p>
+                
+                <p>"These aren't just passive organisms floating in the water," explained Dr. Marcus Williams, a marine biologist who joined the Europa research team. "They exhibit problem-solving behaviors and appear to have a form of social structure. We've observed them collaborating to navigate obstacles and even constructing simple shelters from mineral deposits."</p>
+                
+                <div class="article-quote">
+                    <blockquote>"This forces us to completely rethink our assumptions about what conditions are necessary for complex life to evolve."</blockquote>
+                    <cite>- Dr. Eliza Hernandez, NASA Astrobiology Institute</cite>
+                </div>
+                
+                <h2 class="article-section">Unique Adaptation</h2>
+                
+                <p>The organisms have evolved in an environment with no sunlight, instead deriving energy from Europa's hydrothermal vents, where water is heated by tidal forces from Jupiter's gravitational pull.</p>
+                
+                <p>Scientists are particularly intrigued by the creatures' apparent ability to withstand high levels of radiation that periodically penetrate Europa's ice when cracks form in the surface.</p>
+                
+                <p>"Their cellular structure includes what appears to be a radiation-resistant protein that we've never seen before," said biophysicist Dr. James Park. "This compound could have enormous implications for everything from cancer treatment to deep space human travel."</p>
+                
+                <h2 class="article-section">Ethical Considerations</h2>
+                
+                <p>The discovery has prompted intense debate within the scientific community about how to proceed with further research while minimizing human impact on the newly discovered ecosystem.</p>
+                
+                <p>"We need to approach this with tremendous caution," warned Dr. Chen. "We're already developing strict protocols to ensure we don't contaminate their environment or disrupt their social structures."</p>
+                
+                <p>The United Nations has announced the formation of an international committee to establish ethical guidelines for future Europa exploration, with representatives from 27 countries expected to participate.</p>
+                
+                <h2 class="article-section">Looking Ahead</h2>
+                
+                <p>NASA has already begun planning a follow-up mission that would deploy more sophisticated monitoring equipment designed to observe the jellyfish with minimal interference.</p>
+                
+                <p>"This is just the beginning," said NASA Administrator Captain Rebecca Johnston. "The Europa jellyfish represent our first contact with complex extraterrestrial life. What we learn from them could fundamentally change our understanding of biology, evolution, and our place in the universe."</p>
+                
+                <div class="article-related">
+                    <h3>Related Stories</h3>
+                    <ul>
+                        <li><a href="#">Europa Mission: The Technology Behind the Discovery</a></li>
+                        <li><a href="#">Is Europa Just the Beginning? Other Moons That Could Harbor Life</a></li>
+                        <li><a href="#">Timeline: Humanity's Search for Extraterrestrial Life</a></li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+    </main>
+    
+    <footer class="footer-wrapper">
+        <!-- Footer would go here -->
+    </footer>
+</body>
+</html>

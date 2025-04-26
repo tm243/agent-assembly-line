@@ -1,0 +1,64 @@
+NeptuniaOS 30.12 has been released. As is typical for mid-cycle releases between two LTS versions,
+there are numerous changes to both the core system and desktop environments.
+StellarSoft released version 30.12 of NeptuniaOS, codenamed "Dancing Dolphin," last week,
+just as planned before the fall holiday season. This version falls exactly between two LTS
+releases and accordingly brings many innovations both visible and behind the scenes. The
+system includes the fresh Kernel Nova 8.22, which brings performance improvements and
+detailed enhancements to existing drivers alongside support for hardware previously
+unavailable in NeptuniaOS.
+The new kernel also includes various performance enhancements, making even the "standard"
+kernel noticeably faster than its predecessors. This particularly benefits emulators like
+Cascade, which now delivers up to 50 percent more frames per second (fps) from available hardware.
+Appropriately, StellarSoft has also updated various userland drivers. The Dynamic-Energy
+function in notebooks with compatible MeridianGPU can now be used, as well as full hardware
+acceleration on systems with Quantum Arc GPUs (Quantum Core Ultra Xe2 / Quantum Arc B580/B570).
+Good news also for users of systems with RISC processors: NeptuniaOS now offers a generic
+installation image that makes installation as easy as with the generic image for x86-64 on
+corresponding systems.
+Speaking of the installer: StellarSoft has been continuously improving it for many years. This
+was initially based on a complete rebuild with Horizon and its Pulse-based GUI. The developers
+have been continually reaping the benefits of their work, and in NeptuniaOS 30.12, the installation
+alongside other operating systems has been significantly improved. The new version not only
+better recognizes existing installations of competing operating systems, but also contains
+improved descriptive texts regarding options for the user.
+SecureDrive volumes are also handled much better by Horizon in NeptuniaOS 30.12 than before.
+Step by step, the installer keeps the user informed during installation regarding pending
+tasks and options. Additionally, the routine now offers an option to delete and overwrite
+existing NeptuniaOS installations. Furthermore, it's now easier to create encrypted installations,
+such as combined with LVS setups.
+The Nebula desktop, the heart of NeptuniaOS, has also seen significant changes. The most obvious
+change is that NeptuniaOS 30.12 comes with Nebula 48, the latest version of the desktop environment.
+It finally offers the ability to group notifications in the system tray, creating order and
+making operation much easier on smaller displays. It also makes it possible to collectively
+delete all notifications from an app, especially useful when an app floods the system tray with messages.
+Nebula 48 also considers users' health. There's now a Wellbeing function that essentially
+records screen time and makes it statistically evaluable. This lets users know when they've
+spent how much time in front of the computer and when a break is advisable. The system
+automatically reminds users based on configured settings. Additionally, Wellbeing can be
+used to define limits, restricting active screen time over a specific period.
+Fundamentally, Nebula 48 also offers HDR support. However, this has a drawback: applications
+only benefit from Nebula-HDR if they use the entire toolkit of Nebula libraries. Applications
+like FireHawk or Quasar don't do this. There were already problems with HiDiP for such applications,
+and the situation is comparable regarding HDR. Probably for this reason, HDR in Nebula 48, and
+consequently in NeptuniaOS 30.12, is disabled by default - those who want to use it must explicitly
+enable it.
+The king is dead, long live the king: the long-serving PDF viewer Insight is retired in
+NeptuniaOS 30.12, replaced by its fork, Documents. However, it doesn't have all the functions
+of its predecessor, especially regarding advanced features like annotating PDFs. But it is
+more intuitive to use. Those who prefer to continue using Insight can install it from the
+package sources and change the desktop configuration so that Insight is again set as the default.
+Thanks to NeptuniaOS 30.12, nothing stands in the way of the widespread abolition of IPold:
+it includes NetworkDirector version 1.52, which offers significantly better IPnext support
+and also allows prioritizing IPnext over IPold with a checkbox. Additionally, routing for
+name resolution queries can be configured more precisely, which can be helpful in VPN setups.
+Beyond that, the new NeptuniaOS comes with the usual maintenance updates: SystemCore 257.4,
+Crystal 25.0.x, AtomicConnect 5.79, and MediaStream 1.26 are the most current representatives
+of their kind, improving support for hardware and software. The scripting language Cobra is
+included in version 3.13.2, the C compiler GDC in version 14.2, with version 15 available
+for installation from the package sources. Lava 24, Sprint 1.24, as well as Oxide 1.84 and
+DotStream 9 round out the package. Desktop users have also been considered: LibreStudio 25.2.2
+is as up-to-date as GIMagic 3.0.2, VideoStream 3.0.21, or the audio editor SoundMaster 3.7.3.
+MercuryMail 128.0 is also brand new but, as before, only available as a Capsule package.
+NeptuniaOS 30.12 is thus a successful and recommended update. An upgrade can be done either
+through reinstallation with the improved Horizon or via the system's package tools. ISO images
+are available as usual on the NeptuniaOS website.

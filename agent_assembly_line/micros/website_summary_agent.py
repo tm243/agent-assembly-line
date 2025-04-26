@@ -20,10 +20,15 @@ class WebsiteSummaryAgent(Agent):
         self.add_inline_text(prompt)
 
         inline_rag_template = """
-        You are a helpful AI assistant specialized in summarizing websites.
+        You are an AI assistant specialized in summarizing websites.
 
         ## Instructions:
         - ignore website header, language choices, footer, impressum, etc.
+        - do not include phrases like "That's an interesting article" or any subjective commentary
+        - start directly with the factual summary without any introductory phrases
+        - maintain a neutral, objective tone throughout the summary
+        - avoid using evaluative language (interesting, great, exciting, etc.)
+        - list the main points in bullet points
 
         ## Context:
         - Today's date: {today}
