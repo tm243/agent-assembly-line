@@ -6,6 +6,7 @@ from agent_assembly_line.models.document import Document
 from bs4 import BeautifulSoup
 from readability import Document as ReadabilityDocument
 from readability.readability import REGEXES
+from enum import Enum, auto
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -136,10 +137,18 @@ class CustomDocument(ReadabilityDocument):
 
             self.remove_unwanted_nodes(child, unwanted_substrings)
 
+class WebLoaderMode(Enum):
+    """Mode for web content loading and parsing."""
+    NORMAL = auto()  # Standard webpage parsing
+    READER = auto()  # Reader mode for article content
+    FEED = auto()    # Feed mode for websites with many article links
+
 class WebLoader:
     """
-    - Reader mode
-    - News mode (list)
+    Web content loader with different parsing modes:
+    - NORMAL: Standard web page parsing
+    - READER: Reader mode for better article reading
+    - FEED: News feed mode for sites with many article links
     """
 
     def __init__(self):
@@ -155,7 +164,8 @@ class WebLoader:
         self.service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=self.service, options=options)
 
-    def load_data(self, url, wait_time=10):
+    def load_data(self, url, mode=WebLoaderMode.READER, wait_time=10):
+        self.mode = mode
         self.driver.get(url)
 
         try:
@@ -169,6 +179,15 @@ class WebLoader:
             print(f"Error while waiting for elements: {e}")
             return []
 
+        if self.mode == WebLoaderMode.READER:
+            return self._process_reader_mode(url)
+        elif self.mode == WebLoaderMode.FEED:
+            return self._process_feed_mode(url)
+        else:  # NORMAL mode
+            return self._process_normal_mode(url)
+
+    def _process_normal_mode(self, url):
+        """Process webpage in normal mode with balanced content extraction."""
         readable_doc = CustomDocument(self.driver.page_source)
         main_content_html = readable_doc.summary(html_partial=False)
 
@@ -177,7 +196,7 @@ class WebLoader:
         main_content_html = re.sub(r"\s+$", "", main_content_html, flags=re.MULTILINE)
 
         # remove unwanted elements and tags:
-        main_content = BeautifulSoup(main_content_html, "html.parser").get_text(separator="\n",strip=True)
+        main_content = BeautifulSoup(main_content_html, "html.parser").get_text(separator="\n", strip=True)
         title = readable_doc.short_title()
 
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
@@ -203,11 +222,192 @@ class WebLoader:
         return [
             Document(
                 page_content=main_content,
-                metadata={"source": "web", "url": url, "title": title},
+                metadata={"source": "web", "url": url, "title": title, "mode": "normal"},
             ),
             Document(
                 page_content="\n".join(self.relevant_links),
-                metadata={"source": "web", "url": url, "type": "links"},
+                metadata={"source": "web", "url": url, "type": "links", "mode": "normal"},
+            )
+        ]
+
+    def _process_reader_mode(self, url):
+        """Process webpage in reader mode, focusing on main article content."""
+        readable_doc = CustomDocument(self.driver.page_source)
+        main_content_html = readable_doc.summary(html_partial=False)
+
+        # Remove leading spaces from each line in the HTML content
+        main_content_html = re.sub(r"^\s+", "", main_content_html, flags=re.MULTILINE)
+        # Remove trailing spaces from each line in the HTML content
+        main_content_html = re.sub(r"\s+$", "", main_content_html, flags=re.MULTILINE)
+
+        # More aggressive cleaning of non-content elements
+        soup = BeautifulSoup(main_content_html, "html.parser")
+        for element in soup.find_all(["aside", "nav", "footer", "script", "style", "iframe"]):
+            element.decompose()
+
+        main_content = soup.get_text(separator="\n", strip=True)
+        title = readable_doc.short_title()
+
+        relevant_links = self.extract_relevant_links(soup, url)
+        self.relevant_links = relevant_links
+
+        return [
+            Document(
+                page_content=main_content,
+                metadata={"source": "web", "url": url, "title": title, "mode": "reader"},
+            ),
+            Document(
+                page_content="\n".join(self.relevant_links),
+                metadata={"source": "web", "url": url, "type": "links", "mode": "normal"},
+            )
+        ]
+
+    def _find_articles_in_section(self, section):
+        """
+        Find articles in a given section of the webpage.
+
+        Handles nested structures such as:
+        - <section><article></article><article></article></section>
+        - <section><a><div><ul><li><article></li><li><article></li></ul></div></a></section>
+        """
+        articles = []
+
+        # First approach: find direct article elements (simplest structure)
+        direct_articles = section.find_all("article", recursive=False)
+
+        # Second approach: find nested articles at any level
+        nested_articles = []
+        if not direct_articles:
+            nested_articles = section.find_all("article", recursive=True)
+
+        # Third approach: handle the <section><a><div><ul><li> structure
+        list_items = []
+        if not direct_articles and not nested_articles:
+            ul_elements = section.find_all("ul", recursive=True)
+            for ul in ul_elements:
+                list_items.extend(ul.find_all("li", recursive=False))
+
+        elements_to_process = direct_articles or nested_articles or list_items
+
+        if not elements_to_process: # fallback
+            elements_to_process = section.find_all(
+                ["div", "section", "a"],
+                class_=lambda c: c and any(term in str(c).lower() for term in ["post", "article", "entry", "item", "card"])
+            )
+
+        for element in elements_to_process:
+            headline = ""
+            headline_elem = element.find(["h1", "h2", "h3", "h4"], recursive=True)
+            if headline_elem:
+                # we might have sub elements here in the h1 h2 h3 h4 elements, such as span, p or div:
+                headline_elems = headline_elem.find(["span", "div", "p", "a"], recursive=True)
+                for elem in headline_elems:
+                    if elem.get_text(strip=False):
+                        headline += elem.get_text(strip=False) + ".  "
+
+            # If no headline found through headings, look for title attributes or strong text
+            if not headline:
+                title_elem = element.find(attrs={"title": True}, recursive=True)
+                if title_elem:
+                    headline = title_elem["title"]
+
+            # If still no headline, try links with substantial text
+            if not headline:
+                link_elem = element.find("a", recursive=True)
+                if link_elem and link_elem.get_text(strip=True):
+                    link_text = link_elem.get_text(strip=True)
+                    if len(link_text.split()) >= 3:  # Only use if it has enough words to be a title
+                        headline = link_text
+
+            link = ""
+            link_elem = element.find("a", href=True, recursive=True)
+            if link_elem and "href" in link_elem.attrs:
+                link = self.get_full_url(link_elem["href"], self.base_url)
+
+            summary = ""
+            # Strategy 1: Look for paragraph elements
+            summary_elem = element.find("p", recursive=True)
+            if summary_elem:
+                summary = summary_elem.get_text(strip=True)
+
+            # Strategy 2: Look for specially marked content
+            if not summary or len(summary.split()) < 5:
+                summary_elem = element.find(
+                    ["div", "span"],
+                    class_=lambda c: c and any(term in str(c).lower() for term in
+                                              ["excerpt", "summary", "desc", "teaser", "content"]),
+                    recursive=True
+                )
+                if summary_elem:
+                    summary = summary_elem.get_text(strip=True)
+
+            # Strategy 3: For very simple structures, use the main text of the article
+            if not summary and element.name == "article":
+                # Get all text but exclude the headline text
+                all_text = element.get_text(strip=True)
+                if headline and headline in all_text:
+                    summary = all_text.replace(headline, "", 1).strip()
+
+            # Filter out entries without sufficient content
+            if headline and len(headline.split()) >= 3 and link:
+                # Avoid duplicate content between headline and summary
+                if summary and headline in summary:
+                    summary = summary.replace(headline, "").strip()
+
+            articles.append({
+                "headline": headline,
+                "link": link,
+                "summary": summary
+            })
+
+        return articles
+
+    def _extract_base_url(self, url):
+        """ Extract the base URL from a given URL. """
+        import urllib.parse
+        parsed = urllib.parse.urlparse(url)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+        return base_url
+
+    def _process_feed_mode(self, url):
+        """Process webpage as a feed, extracting article links and summaries."""
+
+        self.base_url = self._extract_base_url(url)
+
+        soup = BeautifulSoup(self.driver.page_source, "html.parser")
+        title = soup.title.string if soup.title else "Unknown Feed"
+
+        # Extract article links with context
+        articles = []
+        sections = soup.find_all(["section"],
+                                        class_=lambda c: c and any(term in str(c).lower()
+                                                                  for term in ["post", "article", "entry", "item", "grid"]))
+
+        article_elements = []
+        for section in sections:
+            articles = self._find_articles_in_section(section) if sections else []
+            article_elements.extend(articles)
+
+        # Create formatted feed content
+        feed_content = f"# {title}\n\n"
+        for article in article_elements:
+            feed_content += f"## {article['headline']}\n"
+            if article['summary']:
+                feed_content += f"{article['summary']}\n"
+            feed_content += f"[Read more]({article['link']})\n\n"
+
+        # Extract all links as separate document
+        all_links = [a["href"] for a in soup.find_all("a", href=True)]
+        relevant_links = [self.get_full_url(link, url) for link in all_links]
+
+        return [
+            Document(
+                page_content=feed_content,
+                metadata={"source": "web", "url": url, "title": title, "mode": "feed"},
+            ),
+            Document(
+                page_content="\n".join(relevant_links),
+                metadata={"source": "web", "url": url, "type": "links", "mode": "feed"},
             )
         ]
 
