@@ -7,8 +7,12 @@ test-llm:
 test-non-llm:
 	python -m unittest discover -s tests/non-llm
 
+# no slow tests by default:
 tests: test
 test:
+	python -m unittest discover -s tests/non-llm
+
+test-all:
 	python -m unittest discover -s tests/
 
 test-verbose:
