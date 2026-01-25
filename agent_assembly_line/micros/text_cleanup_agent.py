@@ -93,14 +93,14 @@ corrupted umlauts, and other symbol problems in the provided text.
         if self.verbose:
             print(message)
 
-    def chunk_text(self, text, chunk_size=1000, overlap=100):
+    def chunk_text(self, text, chunk_size=1500):
         """
-        Chunks the text into smaller pieces for processing.
+        Chunks the text into smaller pieces for processing with improved boundary detection.
+        No overlap is used to prevent text duplication.
 
         Args:
             text (str): The text to chunk
             chunk_size (int): Size of each chunk in characters
-            overlap (int): Number of characters to overlap between chunks
         
         Returns:
             list: List of text chunks
@@ -114,37 +114,60 @@ corrupted umlauts, and other symbol problems in the provided text.
         if len(text) <= chunk_size:
             return [text.strip()]
 
-        actual_overlap = min(overlap, chunk_size - 1)
-
         while start < len(text):
             end = start + chunk_size
-            chunk = text[start:end]
             
-            # Try to break at a sentence or paragraph boundary if possible
-            if end < len(text):
-                # Look for a good breaking point (sentence end)
-                for break_char in ['\n\n', '. ', '! ', '? ']:
-                    last_break = chunk.rfind(break_char)
-                    if last_break > chunk_size * 0.7:  # Don't break too early
-                        chunk = chunk[:last_break + len(break_char)]
-                        end = start + last_break + len(break_char)
-                        break
-            
-            chunks.append(chunk.strip())
-
+            # If we're at the end of the text, take everything remaining
             if end >= len(text):
+                chunk = text[start:].strip()
+                if chunk:  # Only add non-empty chunks
+                    chunks.append(chunk)
                 break
 
-            next_start = end - actual_overlap
+            # Look for the best breaking point in order of preference
+            chunk = text[start:end]
+            best_break = -1
 
-            if next_start <= start and len(chunks) > 0:
-                next_start = start + 1
+            # 1. Try to break at paragraph boundaries (double newlines)
+            paragraph_break = chunk.rfind('\n\n')
+            if paragraph_break > chunk_size * 0.3:  # Don't break too early
+                best_break = paragraph_break + 2
 
-            start = next_start
+            # 2. If no good paragraph break, try sentence endings
+            if best_break == -1:
+                for break_char in ['. ', '! ', '? ']:
+                    sentence_break = chunk.rfind(break_char)
+                    if sentence_break > chunk_size * 0.5:  # More lenient for sentences
+                        best_break = sentence_break + len(break_char)
+                        break
 
-            # Safety check to prevent infinite loops
-            if len(chunks) > len(text):
-                break
+            # 3. If no good sentence break, try other punctuation
+            if best_break == -1:
+                for break_char in [': ', '; ', ', ']:
+                    punct_break = chunk.rfind(break_char)
+                    if punct_break > chunk_size * 0.7:  # More conservative for punctuation
+                        best_break = punct_break + len(break_char)
+                        break
+
+            # 4. As last resort, break at word boundary
+            if best_break == -1:
+                # Find the last space that's not too close to the beginning
+                word_break = chunk.rfind(' ')
+                if word_break > chunk_size * 0.8:  # Very conservative for word breaks
+                    best_break = word_break + 1
+
+            # Apply the break or use the full chunk if no good break found
+            if best_break != -1:
+                chunk = text[start:start + best_break]
+                start = start + best_break
+            else:
+                # No good break found, use the full chunk and move forward
+                start = end
+
+            # Add the chunk if it's not empty
+            chunk = chunk.strip()
+            if chunk:
+                chunks.append(chunk)
 
         return chunks
 
@@ -177,12 +200,13 @@ corrupted umlauts, and other symbol problems in the provided text.
 
         cleaned_chunks = []
         for i, chunk in enumerate(chunks):
-            self._log(f"Processing chunk {i+1}/{len(chunks)}")
+            self._log(f"Processing chunk {i+1}/{len(chunks)} ({len(chunk)} characters)")
 
             self.replace_inline_text(chunk)
             cleaned_text = self.run("Clean up this text, fixing all encoding issues and corrupted characters.")
             cleaned_chunks.append(cleaned_text)
 
+        # Join chunks with a single newline to maintain text flow
         full_cleaned_text = "\n".join(cleaned_chunks)
 
         self._log(f"Saving cleaned text to: {self.output_file_path}")
