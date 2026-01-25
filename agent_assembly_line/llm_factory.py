@@ -49,13 +49,15 @@ class LLMFactory:
             from langchain_openai.embeddings import OpenAIEmbeddings
             api_key = os.getenv("OPENAI_API_KEY")
             if not api_key:
-                raise ValueError("OpenAI API key not found in environment variables")
+                raise ValueError("OPENAI_API_KEY not found in environment variables.")
 
             if model_name == "gpt-3.5-turbo":
                 llm = OpenAI(api_key=api_key, model=config.model_name, timeout=config.timeout)
             else:
                 llm = ChatOpenAI(api_key=api_key, model=config.model_name, timeout=config.timeout)
-            embeddings = OpenAIEmbeddings(api_key=api_key, model=config.embeddings)
+            embeddings = ( config.custom_embeddings or
+                          _llm_embeddings_mapping.get("openai", {}).get(model_name, {}).get("embeddings", "text-embedding-ada-002") )
+            embeddings = OpenAIEmbeddings(api_key=api_key, model=embeddings)
             return llm, embeddings
 
         elif llm_type == "runpod":
