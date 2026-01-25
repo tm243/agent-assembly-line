@@ -19,7 +19,7 @@ class TextCleanupAgent(Agent):
         "clean up corrupted text, or normalize text with symbol problems."
     )
 
-    def __init__(self, input_file_path, output_file_path=None, mode='local', verbose=True, **kwargs):
+    def __init__(self, input_file_path, output_file_path=None, mode='local', verbose=True, custom_instructions=None, **kwargs):
         """
         Initializes the TextCleanupAgent with the given file paths and mode.
 
@@ -29,6 +29,8 @@ class TextCleanupAgent(Agent):
                                    will create a copy with '_cleaned' suffix.
             mode (str): The mode to use ('local' or 'cloud'). Defaults to 'local'.
             verbose (bool): Whether to print progress messages. Defaults to True.
+            custom_instructions (str): Optional custom instructions for cleanup. If provided,
+                                     will replace the default cleanup instructions.
         """
         self.input_file_path = input_file_path
         self.verbose = verbose
@@ -39,7 +41,33 @@ class TextCleanupAgent(Agent):
         else:
             self.output_file_path = output_file_path
 
-        cleanup_template = """
+        # Use custom instructions if provided, otherwise use default template
+        if custom_instructions:
+            cleanup_template = f"""
+You are a text cleanup specialist. Your task is to process the provided text according to the specific instructions below.
+
+## Context:
+- Today's date: {{today}}
+- This is part of a larger document that is being processed in chunks
+- Maintain the original meaning and structure of the text
+
+## Specific Instructions:
+{custom_instructions}
+
+## Instructions:
+1. Follow the specific instructions above
+2. Preserve paragraph breaks and structure
+3. Do NOT add explanations or comments
+4. Return ONLY the cleaned text
+
+## Text to Process:
+{{context}}
+
+## Processed Text:
+{{question}}
+"""
+        else:
+            cleanup_template = """
 You are a text cleanup specialist. Your task is to fix character encoding issues, 
 corrupted umlauts, and other symbol problems in the provided text.
 
