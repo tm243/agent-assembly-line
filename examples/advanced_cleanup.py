@@ -36,7 +36,7 @@ class AdvancedTextCleanup:
             with open(self.resume_file, 'r') as f:
                 return json.load(f)
         return {}
-    
+
     def save_progress(self):
         """Save current progress to resume file."""
         with open(self.resume_file, 'w') as f:
@@ -117,15 +117,14 @@ class AdvancedTextCleanup:
             )
             
             # Create temporary file for pass 1 output
-            temp_path = f"{input_path}_temp_pass1.txt"
-            agent1.output_file_path = temp_path
+            temp_path1 = f"{input_path}_temp_pass1.txt"
+            agent1.output_file_path = temp_path1
             temp_output1 = agent1.process_file()
             
             # Pass 2: Language & Formatting Refinement  
             print("  ✨ Pass 2: Language and formatting refinement...")
             agent2 = TextCleanupAgent(
                 input_file_path=temp_output1,
-                output_file_path=output_path,
                 mode=self.mode,
                 verbose=False,
                 custom_instructions="""Focus on language consistency and formatting:
@@ -137,11 +136,33 @@ class AdvancedTextCleanup:
 - Consolidate excessive line breaks
 - Preserve paragraph structure and meaning"""
             )
-            final_output = agent2.process_file()
+            temp_path2 = f"{input_path}_temp_pass2.txt"
+            agent2.output_file_path = temp_path2
+            temp_output2 = agent2.process_file()
+
+            # Pass 3: Typography & Final Polish
+            print("  🎯 Pass 3: Typography and final polish...")
+            agent3 = TextCleanupAgent(
+                input_file_path=temp_output2,
+                output_file_path=output_path,
+                mode=self.mode,
+                verbose=False,
+                custom_instructions="""Focus on typography and final polish:
+- Standardize footnote formatting: convert all to superscript (1) → ¹), (2) → ²), etc.
+- Fix footnote spacing: remove extra spaces like '¹ )' → '¹)'
+- Ensure consistent quotation marks throughout (choose German „" or English "")
+- Normalize dashes: -- → —, - → – where appropriate
+- Fix any remaining spacing inconsistencies
+- Clean up any remaining scanning artifacts
+- Ensure proper spacing around punctuation
+- Final readability improvements"""
+            )
+            final_output = agent3.process_file()
             
-            # Clean up temporary file
-            if os.path.exists(temp_output1):
-                os.remove(temp_output1)
+            # Clean up temporary files
+            for temp_file in [temp_output1, temp_output2]:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
             
             # Record success
             processing_time = time.time() - start_time
@@ -149,7 +170,7 @@ class AdvancedTextCleanup:
                 'completed': True,
                 'output_path': final_output,
                 'processing_time': processing_time,
-                'passes': 2,
+                'passes': 3,
                 'timestamp': time.time()
             }
             self.save_progress()
@@ -159,9 +180,9 @@ class AdvancedTextCleanup:
             
         except Exception as e:
             # Clean up temporary files on error
-            temp_path = f"{input_path}_temp_pass1.txt"
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
+            for temp_path in [f"{input_path}_temp_pass1.txt", f"{input_path}_temp_pass2.txt"]:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
                 
             # Record failure
             self.progress[input_path] = {
@@ -197,7 +218,7 @@ class AdvancedTextCleanup:
         
         for i, file_path in enumerate(files, 1):
             print(f"\n[{i}/{len(files)}] Processing: {file_path.name}")
-            
+
             try:
                 # Determine output path
                 if output_dir:
@@ -253,26 +274,6 @@ class AdvancedTextCleanup:
         stats['fix_rate'] = stats['issues_fixed'] / stats['issues_found'] if stats['issues_found'] > 0 else 1.0
         
         return stats
-
-    def multi_pass_cleanup(self, input_path: str, output_path: Optional[str] = None):
-        # Pass 1: OCR Error Correction
-        agent1 = TextCleanupAgent(
-            input_file_path=input_path,
-            mode=self.mode,
-            custom_instructions="Focus specifically on OCR errors: fix garbled text like '%tbrar$', 'ot tbe', broken words from hyphenation, and encoding artifacts. Do not change umlauts or other correct characters."
-        )
-        temp_output1 = agent1.process_file()
-        
-        # Pass 2: Language & Formatting
-        agent2 = TextCleanupAgent(
-            input_file_path=temp_output1,
-            output_file_path=output_path,
-            mode=self.mode,
-            custom_instructions="Focus on language consistency, proper formatting, German umlauts"
-        )
-        final_output = agent2.process_file()
-        
-        return final_output
 
 def main():
     parser = argparse.ArgumentParser(description='Advanced text cleanup using Agent Assembly Line')
