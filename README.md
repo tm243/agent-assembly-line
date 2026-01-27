@@ -60,6 +60,7 @@ pip install agent_assembly_line
         - [Semantic Unittests](#semantic-unittests)
         - [Diff Analysis](#diff-analysis)
         - [Text Summary](#text-summary)
+- [Documentation](#documentation)
 - [Design](#design)
 - [Contributing](#contributing)
 - [Reporting Issues](#reporting-issues)
@@ -283,6 +284,16 @@ sum_answer = sum_agent.run("Please summarize these code changes in 2-3 sentences
 sum_agent = DiffSumAgent(sum_answer)
 sum_answer = sum_agent.run()
 ```
+
+# Documentation
+
+Detailed documentation for all components is available in the [docs/](docs/) directory:
+
+- **[Data Loaders](docs/data_loaders/)** - Documentation for all data loader components
+  - [OCR Loader](docs/data_loaders/ocr.md) - Extract text from images using OCR
+- **[Examples](examples/)** - Code examples and usage demonstrations
+
+For component-specific documentation, see the corresponding files in the docs directory.
 
 # Design
 
