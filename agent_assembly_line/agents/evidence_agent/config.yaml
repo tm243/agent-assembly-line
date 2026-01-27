@@ -1,0 +1,11 @@
+name: evidence_agent
+description: "Grounds scientific hypotheses in empirical evidence, data, and observations"
+
+prompt:
+  template: "evidence_agent.txt"
+
+llm:
+  model-identifier: "ollama:gemma2:latest"
+
+timeout: 120
+use-memory: false

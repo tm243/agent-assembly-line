@@ -1,0 +1,11 @@
+name: interpreter_agent
+description: "Formalizes and clarifies scientific hypotheses by removing ambiguity and stating assumptions"
+
+prompt:
+  template: "interpreter_agent.txt"
+
+llm:
+  model-identifier: "ollama:gemma2:latest"
+
+timeout: 120
+use-memory: false
