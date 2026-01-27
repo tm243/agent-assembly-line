@@ -12,6 +12,8 @@ class Config:
     Configuration can be loaded from a file or a dictionary.
     """
 
+    name: str = ""
+
     # data
     doc: str = ""
     url: str = ""
@@ -26,6 +28,7 @@ class Config:
 
     # memory
     memory_prompt: str = ""
+    use_memory: bool = False
 
     # misc
     debug: bool = False
