@@ -1,5 +1,16 @@
 # Agent-Assembly-Line
 
+The simple way to build and embed AI agents...
+
+```python
+agent = Agent("aethelland-demo")
+text = agent.run("How many people live in the country?")
+
+print(text) # "Aethelland has a population of..."
+```
+
+Built to be simpler than other frameworks while remaining code-native.
+
 [Build AI agents in Python. A library for developers.](#simple-api)
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/X9bys8RB5EMsjhQjp1eEDL/JkxNCG7MxwpLaBBRHyfEXt/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/circleci/X9bys8RB5EMsjhQjp1eEDL/JkxNCG7MxwpLaBBRHyfEXt/tree/main)
