@@ -11,6 +11,8 @@ from .text_loader import TextLoader, InlineTextLoader
 from .pdf_loader import PDFLoader
 from .bluesky_loader import BlueskyLoader
 from .rest_api_loader import RESTAPILoader
+from .ocr_loader import OCRLoader
+# TODO: lazy import loaders
 
 class DataLoaderFactory:
     @staticmethod
@@ -31,6 +33,8 @@ class DataLoaderFactory:
             return InlineTextLoader()
         elif source_type == "bluesky":
             return BlueskyLoader()
+        elif source_type == "ocr":
+            return OCRLoader()
         else:
             raise ValueError(f"Unsupported source type: {source_type}")
 
@@ -42,6 +46,8 @@ class DataLoaderFactory:
             return 'text'
         elif file_path.endswith(".json"):
             return 'json'
+        elif file_path.lower().endswith((".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".gif")):
+            return 'ocr'
         else:
             raise ValueError(f"Unsupported file type: {file_path}")
 
@@ -73,6 +79,8 @@ class DataLoaderFactory:
                     return 'pdf'
                 elif 'text/plain' in content_type:
                     return 'text'
+                elif any(img_type in content_type for img_type in ['image/png', 'image/jpeg', 'image/jpg', 'image/tiff', 'image/bmp', 'image/gif']):
+                    return 'ocr'
                 else:
                     raise ValueError(f"Unsupported content type: {content_type}")
             except Exception as e:

@@ -128,6 +128,7 @@ PyJWT==2.10.1
 pypdf==6.6.1
 PyPika==0.48.9
 pyproject_hooks==1.2.0
+pytesseract==0.3.13
 PySocks==1.7.1
 pytest==8.3.5
 python-dateutil==2.9.0.post0
