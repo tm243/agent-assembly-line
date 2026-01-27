@@ -1,0 +1,11 @@
+name: judge_agent
+description: "Synthesizes all analyses and renders final verdict on scientific hypotheses with uncertainty quantification"
+
+prompt:
+  template: "judge_agent.txt"
+
+llm:
+  model-identifier: "ollama:gemma2:latest"
+
+timeout: 120
+use-memory: false

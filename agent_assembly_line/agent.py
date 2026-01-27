@@ -54,6 +54,9 @@ class Agent:
     _router = None
     _allocated_agents = []
 
+    RAG_TEMPLATE = ""
+    name    : str = ""
+
     def __init__(self, name = None, debug = False, config = None):
         if name:
             self.name = name

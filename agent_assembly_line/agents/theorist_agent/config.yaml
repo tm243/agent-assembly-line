@@ -1,0 +1,11 @@
+name: theorist_agent
+description: "Derives logical consequences and testable predictions from scientific hypotheses"
+
+prompt:
+  template: "theorist_agent.txt"
+
+llm:
+  model-identifier: "ollama:gemma2:latest"
+
+timeout: 120
+use-memory: false
