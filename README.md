@@ -11,6 +11,12 @@ print(text) # "Aethelland has a population of..."
 
 Built to be simpler than other frameworks while remaining code-native.
 
+> 🛡️ Includes **Semantic Unit Testing** — verify agent logic based on meaning, not just string matching.
+
+
+---
+
+
 [Build AI agents in Python. A library for developers.](#simple-api)
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/X9bys8RB5EMsjhQjp1eEDL/JkxNCG7MxwpLaBBRHyfEXt/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/circleci/X9bys8RB5EMsjhQjp1eEDL/JkxNCG7MxwpLaBBRHyfEXt/tree/main)
