@@ -108,6 +108,31 @@ class PDFToMarkdown:
         sum_agent = SumAgent(text, mode=self.mode)
         summary = sum_agent.run("Provide a comprehensive summary of this document in 3-5 paragraphs, highlighting the main topics, key points, and conclusions.")
         return summary
+
+    def generate_statements(self, text: str) -> str:
+        """Extract all statements from the text using SumAgent."""
+        print(f"📋 Extracting statements using {self.model_info['description']}...")
+        statements_agent = SumAgent(text, mode=self.mode)
+        statements = statements_agent.run("Extract all important statements, facts, claims, and assertions from this document. List each statement on a new line, using bullet points (•) or hyphens (-). Include key findings, conclusions, data points, quotes, and significant declarations. Preserve the original meaning and context of each statement.")
+        return statements
+
+    def generate_insights(self, text: str) -> str:
+        """Generate insights and analysis from the text using SumAgent."""
+        print(f"💡 Generating insights using {self.model_info['description']}...")
+        insights_agent = SumAgent(text, mode=self.mode)
+        insights = insights_agent.run("""Analyze this document and extract deep insights.
+
+Focus specifically on:
+- underlying themes and patterns of thinking
+- connections between ideas across the conversation
+- new or non-obvious insights that emerged
+- implications for future thinking, research, or decision-making
+- shifts in perspective or reasoning
+
+Avoid surface-level summaries or restating the text.
+Present insights as bullet points or numbered lists, each offering a clear analytical perspective and meaningful interpretation.
+""")
+        return insights
     
     def write_summary_file(self, summary: str, pdf_path: str, output_dir: str = None) -> str:
         """Write summary to a separate file."""
@@ -129,8 +154,49 @@ class PDFToMarkdown:
         print(f"Summary written to: {summary_path}")
         return summary_path
     
+    def write_statements_file(self, statements: str, pdf_path: str, output_dir: str = None) -> str:
+        """Write statements to a separate file."""
+        if output_dir is None:
+            output_dir = os.path.dirname(pdf_path) or "."
+
+        pdf_name = Path(pdf_path).stem
+        statements_path = os.path.join(output_dir, f"{pdf_name}_statements.md")
+
+        statements_content = f"# Statements: {Path(pdf_path).stem.replace('_', ' ').replace('-', ' ').title()}\n\n"
+        statements_content += f"*Generated from PDF: {os.path.basename(pdf_path)}*\n\n"
+        statements_content += f"**Generated on:** {Path(pdf_path).stat().st_mtime}\n\n"
+        statements_content += "---\n\n"
+        statements_content += statements
+
+        with open(statements_path, 'w', encoding='utf-8') as f:
+            f.write(statements_content)
+
+        print(f"Statements written to: {statements_path}")
+        return statements_path
+
+    def write_insights_file(self, insights: str, pdf_path: str, output_dir: str = None) -> str:
+        """Write insights to a separate file."""
+        if output_dir is None:
+            output_dir = os.path.dirname(pdf_path) or "."
+
+        pdf_name = Path(pdf_path).stem
+        insights_path = os.path.join(output_dir, f"{pdf_name}_insights.md")
+
+        insights_content = f"# Insights: {Path(pdf_path).stem.replace('_', ' ').replace('-', ' ').title()}\n\n"
+        insights_content += f"*Generated from PDF: {os.path.basename(pdf_path)}*\n\n"
+        insights_content += f"**Generated on:** {Path(pdf_path).stat().st_mtime}\n\n"
+        insights_content += "---\n\n"
+        insights_content += insights
+
+        with open(insights_path, 'w', encoding='utf-8') as f:
+            f.write(insights_content)
+
+        print(f"Insights written to: {insights_path}")
+        return insights_path
+
     def process_pdf(self, pdf_path: str, output_path: str = None, 
-                   summary_only: bool = False, include_summary: bool = True) -> dict:
+                   summary_only: bool = False, include_summary: bool = True,
+                   include_statements: bool = True, include_insights: bool = True) -> dict:
         """
         Main processing function.
         
@@ -139,6 +205,8 @@ class PDFToMarkdown:
             output_path: Path for output markdown file
             summary_only: If True, only return summary without writing markdown
             include_summary: Whether to generate and save summary to separate file
+            include_statements: Whether to generate and save statements to separate file
+            include_insights: Whether to generate and save insights to separate file
         
         Returns:
             dict: Processing results with paths and content info
@@ -162,15 +230,46 @@ class PDFToMarkdown:
         if include_summary or summary_only:
             summary = self.generate_summary(full_text)
             results['summary'] = summary
-            
+
             # Write summary to separate file
             output_dir = os.path.dirname(output_path) if output_path else None
             summary_path = self.write_summary_file(summary, pdf_path, output_dir)
             results['summary_path'] = summary_path
-        
+
+        # Generate statements
+        statements = ""
+        statements_path = ""
+        if include_statements:
+            statements = self.generate_statements(full_text)
+            results['statements'] = statements
+
+            # Write statements to separate file
+            output_dir = os.path.dirname(output_path) if output_path else None
+            statements_path = self.write_statements_file(statements, pdf_path, output_dir)
+            results['statements_path'] = statements_path
+
+        # Generate insights
+        insights = ""
+        insights_path = ""
+        if include_insights:
+            insights = self.generate_insights(full_text)
+            results['insights'] = insights
+
+            # Write insights to separate file
+            output_dir = os.path.dirname(output_path) if output_path else None
+            insights_path = self.write_insights_file(insights, pdf_path, output_dir)
+            results['insights_path'] = insights_path
+
         if summary_only:
-            print("\n=== SUMMARY ===")
-            print(summary)
+            if summary:
+                print("\n=== SUMMARY ===")
+                print(summary)
+            if statements:
+                print("\n=== STATEMENTS ===")
+                print(statements)
+            if insights:
+                print("\n=== INSIGHTS ===")
+                print(insights)
             return results
         
         # Prepare output path
@@ -186,11 +285,19 @@ class PDFToMarkdown:
         self.write_markdown_file(markdown_content, output_path)
         results['output_path'] = output_path
         
-        # Print summary for user
+        # Print summary and statements for user
         if summary:
             print(f"\n=== SUMMARY ===")
             print(summary)
         
+        if statements:
+            print(f"\n=== STATEMENTS ===")
+            print(statements)
+
+        if insights:
+            print(f"\n=== INSIGHTS ===")
+            print(insights)
+
         return results
 
 def main():
@@ -203,6 +310,10 @@ def main():
                        help='Only generate and display summary, do not write markdown file')
     parser.add_argument('--no-summary', action='store_true',
                        help='Skip summary generation')
+    parser.add_argument('--no-statements', action='store_true',
+                       help='Skip statements extraction')
+    parser.add_argument('--no-insights', action='store_true',
+                       help='Skip insights generation')
     
     args = parser.parse_args()
     
@@ -212,7 +323,9 @@ def main():
             args.pdf_file,
             args.output,
             summary_only=args.summary_only,
-            include_summary=not args.no_summary
+            include_summary=not args.no_summary,
+            include_statements=not args.no_statements,
+            include_insights=not args.no_insights
         )
         
         print(f"\n=== PROCESSING COMPLETE ===")
@@ -223,6 +336,10 @@ def main():
             print(f"Markdown file: {results['output_path']}")
         if 'summary_path' in results:
             print(f"Summary file: {results['summary_path']}")
+        if 'statements_path' in results:
+            print(f"Statements file: {results['statements_path']}")
+        if 'insights_path' in results:
+            print(f"Insights file: {results['insights_path']}")
         
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
