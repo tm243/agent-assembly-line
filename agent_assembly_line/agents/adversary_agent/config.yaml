@@ -1,0 +1,11 @@
+name: adversary_agent
+description: "Actively attempts to falsify scientific hypotheses by finding counterexamples and contradictions"
+
+prompt:
+  template: "adversary_agent.txt"
+
+llm:
+  model-identifier: "ollama:gemma2:latest"
+
+timeout: 120
+use-memory: false
