@@ -43,6 +43,7 @@ pip install agent_assembly_line
         - [Semantic Unittests](#semantic-unittests)
         - [Diff Analysis](#diff-analysis)
         - [Text Summary](#text-summary)
+- [Design](#design)
 - [Contributing](#contributing)
 - [Reporting Issues](#reporting-issues)
 - [License](#license)
@@ -231,7 +232,7 @@ git diff HEAD | cli_agents/diff_details
 
 ### Text Summary
 
-Generic text summarization. You can choose local LLMs or cloud (CHatGPT).
+Generic text summarization. You can choose local LLMs or cloud (ChatGPT).
 
 ```Python
 agent = SumAgent(text, mode='local')
@@ -265,6 +266,30 @@ sum_answer = sum_agent.run("Please summarize these code changes in 2-3 sentences
 sum_agent = DiffSumAgent(sum_answer)
 sum_answer = sum_agent.run()
 ```
+
+# Design
+
+The structure reflects a clean separation between logic and configuration, essentially moving toward a "declarative" way of building AI.
+
+1. "Micros" are the Functional Building Blocks
+The classes under micros (like TextCleanupAgent) are programmatic tools.
+The "How": They contain the actual Python logic, API calls, or specific regex/transformation code.
+The Usage: They are designed to be imported as standard Python objects. You use them when you want deterministic or high-performance control over a specific utility task within your own codebase.
+Analogy: These are like specialized power tools in a workshop. You pick them up when you need to "sand" or "drill" a specific piece of data.
+
+2. "Agents" are Declarative Identities
+The YAML files under agents are definitions of persona and knowledge.
+The "Who": Since they are code-less YAMLs with templates and RAG data, they define the behavioral boundaries of an LLM instance—its role, the specific data it "knows" (RAG), and the prompt it follows.
+The Usage: This allows you to swap out an agent's "brain" or "personality" without changing a single line of Python code. You can update the YAML, and the system behaves differently.
+Analogy: These are like job descriptions or manuals. They don't "do" anything until they are loaded into a reasoning engine.
+
+3. The "Assembly Line" Concept
+By separating these two, the framework allows you to build a true assembly line where:
+Logic (Micros) handles the heavy lifting and data cleaning.
+Intelligence (Agents) handles the decisions and context-heavy generation.
+Orchestration happens by passing data from a "Micro" (which might clean the text) to an "Agent" (defined by YAML, which analyzes that cleaned text using its RAG data).
+In this architecture, an "agent" is not just one step in a chain—it is the configuration that tells the system how a specific step in that chain should "think."
+
 
 # Contributing
 
