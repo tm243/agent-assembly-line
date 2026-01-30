@@ -34,7 +34,7 @@ jobs:
       - store_artifacts:
           path: ~/artifacts
           destination: node-build
-  test-python:
+  test-python-39:
     docker:
       - image: cimg/python:3.9-node
       - image: ollama/ollama:latest
@@ -138,11 +138,11 @@ workflows:
       - build-node:
           requires:
             - test-node
-            - test-python
+            - test-python-39
             - test-python-312
             - build-python-package
           context: []
-      - test-python:
+      - test-python-39:
           context: *a1
       - test-python-312:
           context: *a1
