@@ -32,7 +32,7 @@ dnspython==2.7.0
 docutils==0.21.2
 durationpy==0.9
 exceptiongroup==1.2.2
-fastapi==0.115.8
+fastapi==0.115.9
 feedfinder2==0.0.4
 feedparser==6.0.11
 filelock==3.18.0
@@ -42,8 +42,8 @@ fsspec==2025.3.0
 google-auth==2.38.0
 googleapis-common-protos==1.69.2
 grpcio==1.71.0
-h11==0.14.0
-httpcore==1.0.7
+h11==0.16.0
+httpcore==1.0.9
 httptools==0.6.4
 httpx==0.28.1
 httpx-sse==0.4.0
@@ -55,7 +55,7 @@ importlib_metadata==8.6.1
 importlib_resources==6.5.2
 iniconfig==2.1.0
 jaraco.classes==3.4.0
-jaraco.context==6.0.1
+jaraco.context==6.1.0
 jaraco.functools==4.1.0
 jieba3k==0.35.1
 jiter==0.9.0
@@ -69,11 +69,11 @@ kubernetes==32.0.1
 langchain==0.3.21
 langchain-chroma==0.2.2
 langchain-community==0.3.20
-langchain-core==0.3.49
+langchain-core==0.3.81
 langchain-ollama==0.3.0
 langchain-openai==0.3.11
-langchain-text-splitters==0.3.7
-langsmith==0.3.18
+langchain-text-splitters==0.3.9
+langsmith==0.3.45
 libipld==3.0.1
 loguru==0.7.3
 lxml==5.3.1
@@ -171,7 +171,7 @@ typing-inspect==0.9.0
 typing_extensions==4.12.2
 tzdata==2025.2
 unidiff==0.7.5
-urllib3==1.26.20
+urllib3==2.6.0
 uvicorn==0.34.0
 uvloop==0.21.0
 watchfiles==1.0.4
