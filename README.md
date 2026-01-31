@@ -39,7 +39,7 @@ Agent-Assembly-Line supports:
 
 Agent-Assembly-Line comes with examples such as [Semantic Unittests](tests/llm/test_text_validator.py), [Diff Analysis](examples/diff_analysis.py), and more; a demo chat app and tests.
 
-Python 3.9, 3.10:
+Python 3.9, 3.10, 3.12:
 ```console
 pip install agent_assembly_line
 ```
@@ -84,9 +84,9 @@ Output: "The rest of today in Helsinki will be sunny and mild with temperatures 
 ## Install Python Environment
 
 ```console
-/usr/bin/python3 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e .
 ```
 
 It works with Python 3.9.6

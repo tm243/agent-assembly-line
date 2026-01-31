@@ -6,6 +6,11 @@ import datetime
 import os
 from typing import AsyncGenerator
 
+# disable ChromaDB telemetry to prevent spamming the console
+os.environ['ANONYMIZED_TELEMETRY'] = 'False'
+import logging, chromadb
+logging.getLogger('chromadb.telemetry.product.posthog').setLevel(logging.CRITICAL)
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -75,8 +80,12 @@ class Agent:
 
         self.model, self.embeddings = LLMFactory.create_llm_and_embeddings(self.config)
 
-        self.agent_vectorstore = self.load_data(self.config)
-        self.user_vectorstore = Chroma("uploaded-data",self.embeddings)
+        chroma_client_settings = chromadb.config.Settings(
+            anonymized_telemetry=False,
+        )
+
+        self.agent_vectorstore = self.load_data(self.config, chroma_client_settings)
+        self.user_vectorstore = Chroma("uploaded-data", self.embeddings, client_settings=chroma_client_settings)
         if self.config.use_memory:
             self.memory_strategy = MemoryStrategy.SUMMARY
             self.memory_assistant = MemoryAssistant(strategy=self.memory_strategy, model=self.model, config=self.config)
@@ -128,7 +137,7 @@ class Agent:
     async def stopMemoryAssistant(self):
         await self.memory_assistant.stopSaving()
 
-    def load_data(self, config) -> Chroma:
+    def load_data(self, config, chroma_client_settings=None) -> Chroma:
         source_type, source_path = DataLoaderFactory.guess_source_type(config)
         if source_type and source_path:
             loader = DataLoaderFactory.get_loader(source_type)
@@ -137,12 +146,16 @@ class Agent:
                 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
                 all_splits = text_splitter.split_documents(data)
 
-                self.agent_vectorstore = Chroma.from_documents(documents=all_splits, embedding=self.embeddings)
+                self.agent_vectorstore = Chroma.from_documents(
+                    documents=all_splits,
+                    embedding=self.embeddings,
+                    client_settings=chroma_client_settings
+                )
             else:
-                self.agent_vectorstore = Chroma("context", self.embeddings)
+                self.agent_vectorstore = Chroma("context", self.embeddings, client_settings=chroma_client_settings)
             return self.agent_vectorstore
         else:
-            return Chroma("context", self.embeddings)
+            return Chroma("context", self.embeddings, client_settings=chroma_client_settings)
 
     def add_file(self, upload_directory, filename):
         """
