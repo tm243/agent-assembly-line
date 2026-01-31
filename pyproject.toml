@@ -32,17 +32,15 @@ dependencies = [
     "selenium==4.30.0",
     "webdriver-manager==4.0.2",
     "xmltodict==0.14.2",
-    "jq==1.8.0",
     "aiounittest==1.5.0",
     "newspaper3k==0.2.8",
     "typing-inspect==0.9.0",
-    "lxml_html_clean==0.4.1",
-    "urllib3==2.6.3",
-    "python-multipart==0.0.20",
     "pydantic==2.10.6",
     "fastapi==0.115.9",
     "atproto==0.0.59",
     "readability-lxml==0.8.1",
+    "lxml[html_clean]>=5.3.0",
+    "jq==1.8.0",
 ]
 
 [project.urls]
