@@ -4,7 +4,7 @@ Agent-Assembly-Line
 
 from agent_assembly_line.agent import Agent
 from agent_assembly_line.config import Config
-from distutils.util import strtobool
+from agent_assembly_line.utils import strtobool
 
 class YesNoAgent(Agent):
     """

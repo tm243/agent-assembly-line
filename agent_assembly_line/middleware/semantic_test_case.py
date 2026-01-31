@@ -7,7 +7,7 @@ import unittest.async_case
 import unittest.util
 from agent_assembly_line.micros.test_validator_agent import TestValidatorAgent
 from unittest.util import safe_repr
-from distutils.util import strtobool
+from agent_assembly_line.utils import strtobool
 
 _MAX_LENGTH = 40
 
