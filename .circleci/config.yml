@@ -114,6 +114,46 @@ jobs:
       - store_artifacts:
           path: ~/artifacts/test-python-312.log
           destination: test-logs
+  test-python-314:
+    docker:
+      - image: cimg/python:3.14-node
+      - image: ollama/ollama:latest
+        name: ollama
+    resource_class: large
+    steps:
+      - checkout
+      - run:
+          name: Install package in editable mode
+          command: pip install -e .
+      - run:
+          name: Wait for Ollama to start
+          command: |
+            until curl -s http://ollama:11434/; do
+              echo "Waiting for Ollama to start..."
+              sleep 5
+            done
+      - run:
+          name: Pull Gemma3 Model Using Web API
+          command: |
+            curl -X POST http://ollama:11434/api/pull \
+              -H "Content-Type: application/json" \
+              -d '{"model": "gemma3:4b"}'
+      - run:
+          name: Pull Nomic-Embed-Text Model Using Web API
+          command: |
+            curl -X POST http://ollama:11434/api/pull \
+              -H "Content-Type: application/json" \
+              -d '{"model": "nomic-embed-text"}'
+      - run:
+          name: Run tests
+          command: |
+            mkdir -p test-results ~/artifacts
+            python -m unittest discover -s tests/ 2>&1 | tee ~/artifacts/test-python-314.log
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: ~/artifacts/test-python-314.log
+          destination: test-logs
   build-python-package:
     docker:
       - image: cimg/python:3.9
@@ -157,6 +197,8 @@ workflows:
       - test-python-39:
           context: *a1
       - test-python-312:
+          context: *a1
+      - test-python-314:
           context: *a1
       - build-python-package:
           context: []
