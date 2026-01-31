@@ -67,10 +67,13 @@ jobs:
       - run:
           name: Run tests
           command: |
-            mkdir -p test-results
-            python -m unittest discover -s tests/
+            mkdir -p test-results ~/artifacts
+            python -m unittest discover -s tests/ 2>&1 | tee ~/artifacts/test-python-39.log
       - store_test_results:
           path: test-results
+      - store_artifacts:
+          path: ~/artifacts/test-python-39.log
+          destination: test-logs
   test-python-312:
     docker:
       - image: cimg/python:3.12-node
@@ -104,10 +107,13 @@ jobs:
       - run:
           name: Run tests
           command: |
-            mkdir -p test-results
-            python -m unittest discover -s tests/
+            mkdir -p test-results ~/artifacts
+            python -m unittest discover -s tests/ 2>&1 | tee ~/artifacts/test-python-312.log
       - store_test_results:
           path: test-results
+      - store_artifacts:
+          path: ~/artifacts/test-python-312.log
+          destination: test-logs
   build-python-package:
     docker:
       - image: cimg/python:3.9
