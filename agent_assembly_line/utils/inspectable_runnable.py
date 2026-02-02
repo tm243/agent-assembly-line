@@ -14,19 +14,23 @@ class InspectableRunnable(RunnablePassthrough):
         self.statsCallback = statsCallback if statsCallback else lambda: None
 
     def invoke(self, inputs, config=None, **kwargs):
-        self.statsCallback({ "prompt_size": len(str(inputs)) })
+        prompt_str = str(inputs)
+        self.statsCallback({ "prompt_size": len(prompt_str), "prompt_content": prompt_str })
         return super().invoke(inputs, config, **kwargs)
 
     async def ainvoke(self, inputs, config=None, **kwargs):
-        self.statsCallback({ "prompt_size": len(str(inputs)) })
+        prompt_str = str(inputs)
+        self.statsCallback({ "prompt_size": len(prompt_str), "prompt_content": prompt_str })
         return await super().ainvoke(inputs, config, **kwargs)
 
     def transform(self, input: Iterator[Any], config: Optional[Any] = None, **kwargs: Any) -> Iterator[Any]:
         for result in super().transform(input, config, **kwargs):
-            self.statsCallback({ "prompt_size": len(result.to_string()) })
+            result_str = result.to_string()
+            self.statsCallback({ "prompt_size": len(result_str), "prompt_content": result_str })
             yield result
 
     async def atransform(self, input: AsyncIterator[Any], config: Optional[Any] = None, **kwargs: Any) -> AsyncIterator[Any]:
         async for result in super().atransform(input, config, **kwargs):
-            self.statsCallback({ "prompt_size": len(result.to_string()) })
+            result_str = result.to_string()
+            self.statsCallback({ "prompt_size": len(result_str), "prompt_content": result_str })
             yield result

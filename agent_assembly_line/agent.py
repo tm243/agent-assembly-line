@@ -62,7 +62,7 @@ class Agent:
     RAG_TEMPLATE = ""
     name    : str = ""
 
-    def __init__(self, name = None, debug = False, config = None):
+    def __init__(self, name = None, debug = False, audit_prompts = False, config = None):
         if name:
             self.name = name
         if not config:
@@ -72,6 +72,8 @@ class Agent:
         if not name:
             self.name = self.config.name
         self.debug_mode = debug
+        self.audit_prompts = audit_prompts
+        self.audit_counter = 0
         if self.config.prompt_template:
             with open(self.config.prompt_template, "r") as rag_template_file:
                 self.RAG_TEMPLATE = rag_template_file.read()
@@ -300,8 +302,37 @@ class Agent:
         self._log_time("Memory handling, done")
 
     def _stats_callback(self, stats):
+        # logging full prompts
+        if 'prompt_content' in stats and self.audit_prompts:
+            prompt_content = stats['prompt_content']
+            self.audit_counter += 1
+            os.makedirs('audit_logs', exist_ok=True)
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            audit_file = f"audit_logs/audit_{timestamp}_{self.name}_{self.audit_counter:03d}.txt"
+
+            try:
+                with open(audit_file, 'w', encoding='utf-8') as f:
+                    f.write(f"=== PROMPT AUDIT LOG ===\n")
+                    f.write(f"Timestamp: {datetime.datetime.now().isoformat()}\n")
+                    f.write(f"Agent: {self.name}\n")
+                    f.write(f"Model: {self.config.model_name}\n")
+                    f.write(f"Prompt Size: {stats['prompt_size']} characters\n")
+                    f.write(f"Agent Vector Store Size: {len(self.agent_vectorstore.get()['documents']) if self.agent_vectorstore.get() else 0}\n")
+                    f.write(f"User Vector Store Size: {len(self.user_vectorstore.get()['documents']) if self.user_vectorstore.get() else 0}\n")
+                    f.write(f"Inline Context Length: {len(self.inline_context)}\n")
+                    f.write(f"Memory Enabled: {self.config.use_memory}\n")
+                    f.write(f"=== PROMPT CONTENT ===\n")
+                    f.write(prompt_content)
+                    f.write(f"\n=== END PROMPT CONTENT ===\n")
+                print(f"Prompt logged to: {audit_file}")
+            except Exception as e:
+                print(f"Failed to save audit log: {e}")
+
         if self.debug_mode:
             print(f"Prompt size: {stats['prompt_size']} characters")
+            if not self.audit_prompts:
+                print("Use audit_prompts=True to log full prompt content")
+
         self.stats.update(stats)
 
     def do_chain(self, prompt, skip_rag=False) -> tuple[dict, RunnablePassthrough]:
