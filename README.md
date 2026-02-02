@@ -1,6 +1,6 @@
 # Agent-Assembly-Line
 
-The simple way to build and embed AI agents...
+The simple way to build and embed AI agents in your code...
 
 ```python
 agent = Agent("aethelland-demo")
@@ -9,7 +9,7 @@ text = agent.run("How many people live in the country?")
 print(text) # "Aethelland has a population of..."
 ```
 
-Built to be simpler than other frameworks while remaining code-native.
+Built to be simpler than other frameworks while remaining code-native. Prompts are easy to debug.
 
 > 🛡️ Includes **Semantic Unit Testing** — verify agent logic based on meaning, not just string matching.
 
@@ -60,6 +60,7 @@ pip install agent_assembly_line
         - [Semantic Unittests](#semantic-unittests)
         - [Diff Analysis](#diff-analysis)
         - [Text Summary](#text-summary)
+    - [Debugging](#debugging)
 - [Documentation](#documentation)
 - [Design](#design)
 - [Contributing](#contributing)
@@ -284,6 +285,22 @@ sum_answer = sum_agent.run("Please summarize these code changes in 2-3 sentences
 sum_agent = DiffSumAgent(sum_answer)
 sum_answer = sum_agent.run()
 ```
+
+# Debugging
+
+```python
+# Basic debug output
+agent = Agent("foo", debug=True)
+
+# Full prompt auditing
+agent = Agent("foo", audit_prompts=True)
+
+# Both combined
+agent = Agent("foo", debug=True, audit_prompts=True)
+```
+
+- `debug=True`: Shows prompt size and timing info
+- `audit_prompts=True`: Logs complete prompts to `audit_logs/audit_[timestamp]_[agent]_[counter].txt`
 
 # Documentation
 
