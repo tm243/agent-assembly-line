@@ -21,6 +21,7 @@ dependencies = [
     "langchain-chroma==0.2.2",
     "langchain-ollama==0.3.0",
     "langchain-openai==0.3.11",
+    "langchain-anthropic==0.3.10",
     "pandas==2.2.3",
     "numpy==1.26.4",
     "pytest==8.3.5",
